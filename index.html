@@ -883,6 +883,10 @@
                 <span class="label">当前局数</span>
                 <span class="value" id="consecutiveRounds">第 1 把</span>
             </div>
+            <div class="info-item">
+                <span class="label">连胡</span>
+                <span class="value" id="consecutiveWins">0</span>
+            </div>
         </div>
         
         <!-- 玩家区域 -->
@@ -1103,6 +1107,26 @@
         </div>
     </div>
 
+    <!-- 重排弹窗 -->
+    <div class="modal-overlay confirm-modal" id="rearrangeModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="confirm-icon">🔄</div>
+            <div class="confirm-title">庄家连胡4把</div>
+            <div class="confirm-message">
+                <div style="margin-bottom: 15px; font-size: 14px; color: rgba(255,255,255,0.8);">
+                    请重新安排位置，分数跟随名字
+                </div>
+                <div id="rearrangeInputs" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- 动态生成输入框 -->
+                </div>
+            </div>
+            <div class="confirm-buttons" style="margin-top: 20px;">
+                <button class="btn-cancel" onclick="closeRearrangeModal()">取消</button>
+                <button class="btn-confirm" onclick="confirmRearrange()">确认重排</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 游戏状态
         let gameState = {
@@ -1116,6 +1140,7 @@
             dealerIndex: 0,
             idleIndex: 4,         // 轮空玩家索引，默认白板（索引4）轮空
             consecutiveRounds: 1,
+            consecutiveDealerWins: 0,  // 庄家连胡计数
             records: [],
             globalDouble: false,  // 全局双翻状态
             playerCount: 5        // 当前局人数：3、4 或 5，默认5人局
@@ -1329,6 +1354,12 @@
             
             // 更新连庄显示
             document.getElementById('consecutiveRounds').textContent = `第 ${gameState.consecutiveRounds} 把`;
+            
+            // 更新连胡计数
+            const consecutiveWinsEl = document.getElementById('consecutiveWins');
+            if (consecutiveWinsEl) {
+                consecutiveWinsEl.textContent = gameState.consecutiveDealerWins;
+            }
             
             // 更新当前庄家标签
             const dealerLabel = document.getElementById('dealerLabel');
@@ -1751,6 +1782,9 @@
             
             // 语音播报
             speak(dealer.name + '庄家' + typeName + '！');
+            
+            // 庄家连胡计数 +1
+            gameState.consecutiveDealerWins++;
 
             if (gameState.consecutiveRounds < 4) {
                 gameState.consecutiveRounds++;
@@ -1764,6 +1798,15 @@
                     gameState.dealerIndex = (gameState.dealerIndex + 1) % activeCount;
                 }
                 addRecord('庄家连庄4把，强制下庄', 0);
+            }
+
+            // 检查庄家连胡是否达到4次
+            if (gameState.consecutiveDealerWins >= 4) {
+                gameState.consecutiveDealerWins = 0;
+                // 延迟显示重排弹窗，让用户先看到胡牌记录
+                setTimeout(() => {
+                    showRearrangeModal();
+                }, 500);
             }
 
             updateDisplay();
@@ -1824,6 +1867,9 @@
 
             gameState.consecutiveRounds = 1;
             
+            // 庄家连胡清零（闲家胡牌）
+            gameState.consecutiveDealerWins = 0;
+            
             // 5人局：庄家下庄后，新庄家的上一个玩家轮空
             if (isFivePlayerMode()) {
                 gameState.dealerIndex = (gameState.dealerIndex + 1) % 5;
@@ -1874,6 +1920,9 @@
             
             // 重置连庄
             gameState.consecutiveRounds = 1;
+            
+            // 庄家连胡清零（流牌）
+            gameState.consecutiveDealerWins = 0;
             
             const activeCount = getActivePlayerCount();
             
@@ -2137,6 +2186,78 @@
                 closeConfirmModal();
             }
         });
+
+        // ========== 重排功能 ==========
+        
+        // 显示重排弹窗
+        function showRearrangeModal() {
+            const modal = document.getElementById('rearrangeModal');
+            const inputsContainer = document.getElementById('rearrangeInputs');
+            
+            // 清空并生成输入框
+            inputsContainer.innerHTML = '';
+            
+            const activeCount = getActivePlayerCount();
+            const winds = ['东', '南', '西', '北', '白板'];
+            
+            for (let i = 0; i < activeCount; i++) {
+                const player = gameState.players[i];
+                const scoreText = player.score >= 0 ? `+${player.score}` : player.score;
+                
+                const row = document.createElement('div');
+                row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 10px;';
+                row.innerHTML = `
+                    <span style="width: 50px; font-weight: bold; color: #ffd700;">${winds[i]}风</span>
+                    <input type="text" id="rearrangeName${i}" value="${player.name}" 
+                           style="flex: 1; padding: 10px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: #fff;">
+                    <span style="width: 60px; text-align: right; font-size: 14px; color: ${player.score >= 0 ? '#4ade80' : '#f87171'};">${scoreText}</span>
+                `;
+                inputsContainer.appendChild(row);
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        // 关闭重排弹窗
+        function closeRearrangeModal() {
+            const modal = document.getElementById('rearrangeModal');
+            modal.classList.remove('active');
+        }
+        
+        // 确认重排
+        function confirmRearrange() {
+            // 保存当前状态到历史
+            saveToHistory();
+            
+            const activeCount = getActivePlayerCount();
+            
+            // 收集新名字和旧分数
+            const oldScores = {};
+            gameState.players.forEach((p, i) => {
+                if (i < activeCount) {
+                    oldScores[p.name] = p.score;
+                }
+            });
+            
+            // 获取新名字并更新分数
+            for (let i = 0; i < activeCount; i++) {
+                const newNameInput = document.getElementById(`rearrangeName${i}`);
+                const newName = newNameInput.value.trim() || `玩家${i + 1}`;
+                const oldScore = oldScores[newName] !== undefined ? oldScores[newName] : 0;
+                
+                gameState.players[i].name = newName;
+                gameState.players[i].score = oldScore;
+            }
+            
+            // 重置连庄和连胡
+            gameState.consecutiveRounds = 1;
+            gameState.consecutiveDealerWins = 0;
+            
+            addRecord('庄家连胡4把，重新安排位置', 0);
+            
+            closeRearrangeModal();
+            updateDisplay();
+        }
 
         // 注册 Service Worker（PWA 离线支持）
         if ('serviceWorker' in navigator) {
