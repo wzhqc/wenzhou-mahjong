@@ -1419,13 +1419,7 @@
                         zhahuBtn.disabled = true;
                         zhahuBtn.textContent = '轮空中';
                     }
-                    // 禁用输入框（轮空玩家不能输入名字）
-                    const nameInput = card.querySelector('.player-name');
-                    if (nameInput) {
-                        nameInput.disabled = true;
-                        nameInput.style.opacity = '0.5';
-                        nameInput.style.cursor = 'not-allowed';
-                    }
+                    // 注意：轮空玩家的输入框不禁用，允许输入名字
                     return; // 轮空玩家不处理其他标记
                 }
 
