@@ -1419,6 +1419,13 @@
                         zhahuBtn.disabled = true;
                         zhahuBtn.textContent = '轮空中';
                     }
+                    // 禁用输入框（轮空玩家不能输入名字）
+                    const nameInput = card.querySelector('.player-name');
+                    if (nameInput) {
+                        nameInput.disabled = true;
+                        nameInput.style.opacity = '0.5';
+                        nameInput.style.cursor = 'not-allowed';
+                    }
                     return; // 轮空玩家不处理其他标记
                 }
 
@@ -1447,6 +1454,13 @@
                 if (zhahuBtn) {
                     zhahuBtn.disabled = false;
                     zhahuBtn.textContent = '💣 炸胡';
+                }
+                // 启用输入框（非轮空玩家）
+                const nameInput = card.querySelector('.player-name');
+                if (nameInput) {
+                    nameInput.disabled = false;
+                    nameInput.style.opacity = '1';
+                    nameInput.style.cursor = 'text';
                 }
             });
 
@@ -2197,19 +2211,20 @@
             // 清空并生成输入框
             inputsContainer.innerHTML = '';
             
-            const activeCount = getActivePlayerCount();
+            // 显示所有玩家位置（3人局显示3个，4人局显示4个，5人局显示5个）
+            const totalCount = isThreePlayerMode() ? 3 : (isFivePlayerMode() ? 5 : 4);
             const winds = ['东', '南', '西', '北', '白板'];
             
-            for (let i = 0; i < activeCount; i++) {
+            for (let i = 0; i < totalCount; i++) {
                 const player = gameState.players[i];
                 const scoreText = player.score >= 0 ? `+${player.score}` : player.score;
                 
                 const row = document.createElement('div');
-                row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 10px;';
+                row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 10px; flex-wrap: wrap;';
                 row.innerHTML = `
                     <span style="width: 50px; font-weight: bold; color: #ffd700;">${winds[i]}风</span>
                     <input type="text" id="rearrangeName${i}" value="${player.name}" 
-                           style="flex: 1; padding: 10px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: #fff;">
+                           style="flex: 1; min-width: 100px; padding: 10px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: #fff;">
                     <span style="width: 60px; text-align: right; font-size: 14px; color: ${player.score >= 0 ? '#4ade80' : '#f87171'};">${scoreText}</span>
                 `;
                 inputsContainer.appendChild(row);
@@ -2229,24 +2244,35 @@
             // 保存当前状态到历史
             saveToHistory();
             
-            const activeCount = getActivePlayerCount();
+            // 显示所有玩家位置
+            const totalCount = isThreePlayerMode() ? 3 : (isFivePlayerMode() ? 5 : 4);
             
-            // 收集新名字和旧分数
-            const oldScores = {};
+            // 收集旧玩家的所有数据（分数、财神、杠牌、胡牌）
+            const oldPlayersData = {};
             gameState.players.forEach((p, i) => {
-                if (i < activeCount) {
-                    oldScores[p.name] = p.score;
+                if (i < totalCount) {
+                    oldPlayersData[p.name] = {
+                        score: p.score,
+                        caishen: p.caishen,
+                        gang: p.gang,
+                        winCount: p.winCount
+                    };
                 }
             });
             
-            // 获取新名字并更新分数
-            for (let i = 0; i < activeCount; i++) {
+            // 获取新名字并更新所有数据
+            for (let i = 0; i < totalCount; i++) {
                 const newNameInput = document.getElementById(`rearrangeName${i}`);
                 const newName = newNameInput.value.trim() || `玩家${i + 1}`;
-                const oldScore = oldScores[newName] !== undefined ? oldScores[newName] : 0;
+                
+                // 如果旧数据中有这个名字，使用旧数据；否则使用0
+                const oldData = oldPlayersData[newName];
                 
                 gameState.players[i].name = newName;
-                gameState.players[i].score = oldScore;
+                gameState.players[i].score = oldData ? oldData.score : 0;
+                gameState.players[i].caishen = oldData ? oldData.caishen : 0;
+                gameState.players[i].gang = oldData ? oldData.gang : 0;
+                gameState.players[i].winCount = oldData ? oldData.winCount : 0;
             }
             
             // 重置连庄和连胡
