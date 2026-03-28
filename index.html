@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a4d2e">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%231a4d2e'/><text x='96' y='145' font-size='120' text-anchor='middle' fill='%23ffd700'>🀄</text></svg>">
+    <title>温州麻将计分器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html {
+            touch-action: manipulation;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: 
+                radial-gradient(ellipse at center, rgba(0,80,40,0.8) 0%, transparent 70%),
+                linear-gradient(135deg, #0d2818 0%, #1a4d2e 25%, #0f3521 50%, #1a4d2e 75%, #0d2818 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+            position: relative;
+        }
+        /* 麻将桌纹理 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.02) 20px, rgba(255,255,255,0.02) 40px),
+                repeating-linear-gradient(-45deg, transparent, transparent 20px, rgba(255,255,255,0.02) 20px, rgba(255,255,255,0.02) 40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            padding: 15px 0;
+        }
+        .header::before, .header::after {
+            content: '🀄';
+            font-size: 36px;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            filter: drop-shadow(0 0 12px rgba(255,215,0,0.5));
+            animation: mahjongFloat 3s ease-in-out infinite;
+        }
+        .header::before { 
+            left: 5%; 
+            animation-delay: 0s;
+        }
+        .header::after { 
+            right: 5%; 
+            animation-delay: 1.5s;
+        }
+        @keyframes mahjongFloat {
+            0%, 100% { transform: translateY(-50%) rotate(-5deg); }
+            50% { transform: translateY(-55%) rotate(5deg); }
+        }
+        h1 {
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: 10px;
+            text-shadow: 
+                0 0 15px rgba(255,215,0,0.5),
+                0 3px 6px rgba(0,0,0,0.6),
+                0 0 30px rgba(255,140,0,0.3);
+            background: linear-gradient(180deg, #ffec8b 0%, #ffd700 30%, #ff8c00 70%, #ff6600 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+            position: relative;
+            display: inline-block;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ffd700, #ff8c00, #ffd700, transparent);
+            border-radius: 2px;
+        }
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 8px rgba(255,215,0,0.4)); }
+            to { filter: drop-shadow(0 0 20px rgba(255,215,0,0.7)); }
+        }
+        .subtitle {
+            font-size: 12px;
+            color: rgba(255,215,0,0.7);
+            margin-top: 10px;
+            letter-spacing: 3px;
+            font-weight: 500;
+            text-shadow: 0 2px 3px rgba(0,0,0,0.5);
+        }
+        
+        /* 连庄信息 - 突出显示 */
+        .consecutive-info {
+            text-align: center;
+            padding: 18px 30px;
+            background: 
+                linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(101,67,33,0.9) 100%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffd700' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            box-shadow: 
+                0 0 30px rgba(255,215,0,0.35),
+                0 8px 25px rgba(0,0,0,0.5),
+                inset 0 2px 12px rgba(255,255,255,0.15);
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+        }
+        .consecutive-info::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700);
+            border-radius: 18px;
+            z-index: -1;
+        }
+        .consecutive-info .info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+        }
+        .consecutive-info .label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .consecutive-info .value {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 
+                0 0 12px rgba(255,215,0,0.8),
+                0 2px 4px rgba(0,0,0,0.5);
+            animation: valueGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes valueGlow {
+            from { text-shadow: 0 0 8px rgba(255,215,0,0.5), 0 2px 4px rgba(0,0,0,0.5); }
+            to { text-shadow: 0 0 20px rgba(255,215,0,1), 0 2px 4px rgba(0,0,0,0.5); }
+        }
+        .consecutive-info .dealer-name {
+            font-size: 18px;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        }
+        
+        /* 玩家区域 */
+        .players-section {
+            display: -webkit-grid;
+            display: grid;
+            -webkit-grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .players-section.three-player {
+            -webkit-grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .players-section.five-player {
+            -webkit-grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(5, 1fr);
+        }
+        @media (max-width: 768px) {
+            .players-section.three-player {
+                -webkit-grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .players-section.five-player {
+                -webkit-grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* 玩家卡片 - 精致设计 */
+        .player-card {
+            background: linear-gradient(145deg, #2a5a3a 0%, #1e4d2e 50%, #153825 100%);
+            border-radius: 16px;
+            padding: 25px 12px 15px;
+            text-align: center;
+            border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            pointer-events: none;
+            border-radius: 20px 20px 0 0;
+        }
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 15px 40px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .player-card.dealer {
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #ffd700, #ff8c00) 1;
+            background: linear-gradient(145deg, #3d6b4a 0%, #2d5a3a 50%, #1e4d2e 100%);
+            box-shadow: 
+                0 0 20px rgba(255,215,0,0.35),
+                0 8px 25px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .player-card.idle {
+            opacity: 0.5;
+            filter: grayscale(0.6);
+            pointer-events: none;
+            border: 2px solid rgba(100,100,100,0.5);
+        }
+        .idle-badge {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #666, #444);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        .player-card.winner {
+            border-color: #00ff88;
+            animation: winPulse 0.5s ease-out;
+        }
+        @keyframes winPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 庄家徽章 */
+        .dealer-badge {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a1a;
+            padding: 4px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 3px 12px rgba(255,215,0,0.5);
+            z-index: 10;
+        }
+        
+        /* 风位显示 */
+        .wind-badge {
+            font-size: 26px;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-weight: 900;
+        }
+
+        /* 玩家名字输入 */
+        .player-name {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.15);
+            color: #fff;
+            text-align: center;
+            font-size: 14px;
+            padding: 6px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            -webkit-appearance: none;
+            transition: all 0.3s;
+        }
+        .player-name:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+        }
+        
+        /* 分数显示 */
+        .score {
+            font-size: 60px;
+            font-weight: 900;
+            margin: 10px 0;
+            text-shadow: 
+                0 0 15px currentColor,
+                0 2px 8px rgba(0,0,0,0.5);
+            transition: all 0.3s;
+        }
+        .score.positive { color: #00ff88; }
+        .score.negative { color: #ff4444; }
+        
+        /* 统计信息 */
+        .stats {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 12px;
+            padding: 6px 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .stats span {
+            margin: 0 4px;
+        }
+        
+        /* 财神杠牌按钮组 */
+        .player-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .player-actions button {
+            flex: 1;
+            padding: 12px 6px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .player-actions button:active {
+            transform: scale(0.95);
+        }
+        .btn-caishen {
+            background: linear-gradient(135deg, #ff9500 0%, #ff6b00 100%);
+            box-shadow: 0 4px 12px rgba(255,149,0,0.4);
+        }
+        .btn-caishen:hover {
+            box-shadow: 0 6px 18px rgba(255,149,0,0.6);
+        }
+        .btn-gang {
+            background: linear-gradient(135deg, #af52de 0%, #8b3ac7 100%);
+            box-shadow: 0 4px 12px rgba(175,82,222,0.4);
+        }
+        .btn-gang:hover {
+            box-shadow: 0 6px 18px rgba(175,82,222,0.6);
+        }
+        .btn-zhahu {
+            background: linear-gradient(135deg, #ff3b30 0%, #cc0000 100%);
+            box-shadow: 0 4px 12px rgba(255,59,48,0.4);
+            padding: 10px 12px;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .btn-zhahu:hover {
+            box-shadow: 0 6px 18px rgba(255,59,48,0.6);
+        }
+        .btn-zhahu:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        /* 胡牌按钮组 */
+        .btn-win-group {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0 10px;
+        }
+        .btn-win {
+            flex: 1;
+            padding: 12px 6px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #00c853 0%, #009624 100%);
+            box-shadow: 0 4px 12px rgba(0,200,83,0.4);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .btn-win:hover {
+            box-shadow: 0 6px 20px rgba(0,200,83,0.6);
+            transform: translateY(-2px);
+        }
+        .btn-win:active {
+            transform: scale(0.95);
+        }
+        
+        /* 全局按钮样式 */
+        button {
+            background: linear-gradient(135deg, #ff6b35 0%, #e74c3c 100%);
+            border: none;
+            color: #fff;
+            padding: 12px 18px;
+            min-height: 48px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-appearance: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        button.secondary {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        button.secondary:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%);
+            border-color: rgba(255,255,255,0.3);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        /* 操作按钮区域 */
+        .action-buttons {
+            display: -webkit-grid;
+            display: grid;
+            -webkit-grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .action-card {
+            background: linear-gradient(145deg, #1e4d2e 0%, #153825 100%);
+            border-radius: 16px;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .action-card h3 {
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: #ffd700;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-group button {
+            flex: 1;
+            min-width: 60px;
+            padding: 12px 12px;
+            min-height: 48px;
+            font-size: 13px;
+        }
+        .btn-double-mini {
+            background: linear-gradient(135deg, #00c853 0%, #009624 100%);
+            padding: 12px 12px;
+            font-size: 13px;
+            flex: 1;
+            min-height: 48px;
+            box-shadow: 0 4px 12px rgba(0,200,83,0.4);
+        }
+        .btn-double-mini:hover {
+            box-shadow: 0 6px 25px rgba(0,200,83,0.6);
+            transform: translateY(-2px);
+        }
+        
+        /* 记录列表 */
+        .records-section {
+            background: linear-gradient(145deg, #1e4d2e 0%, #153825 100%);
+            border-radius: 16px;
+            padding: 18px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .records-section h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #ffd700;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        /* 记录项样式 */
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            border-left: 3px solid rgba(255,255,255,0.2);
+            transition: all 0.2s;
+        }
+        .record-item:hover {
+            background: rgba(0,0,0,0.35);
+            border-left-color: #ffd700;
+        }
+        .record-item .round {
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            min-width: 55px;
+        }
+        .record-item .action {
+            flex: 1;
+            margin: 0 12px;
+            text-align: left;
+        }
+        .record-item .score-change {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .record-item .score-change.positive { color: #00ff88; }
+        .record-item .score-change.negative { color: #ff4444; }
+        
+        /* 撤销历史动画 */
+        .undo-flash {
+            animation: undoFlash 0.5s ease-out;
+        }
+        @keyframes undoFlash {
+            0% { background: rgba(52, 152, 219, 0.4); }
+            100% { background: transparent; }
+        }
+        
+        /* 警告提示 */
+        .undo-hint {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.4);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .undo-hint .hint-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .undo-hint button {
+            padding: 5px 12px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.15);
+        }
+        .undo-hint button:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .players-section {
+                -webkit-grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .action-buttons {
+                -webkit-grid-template-columns: 1fr;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            h1 {
+                font-size: 24px;
+                letter-spacing: 4px;
+            }
+            .header::before, .header::after {
+                display: none;
+            }
+            .consecutive-info {
+                gap: 20px;
+                padding: 12px;
+            }
+            .consecutive-info .value {
+                font-size: 22px;
+            }
+            .consecutive-info .dealer-name {
+                font-size: 16px;
+            }
+            .score {
+                font-size: 48px;
+            }
+            .player-card {
+                padding: 20px 10px 12px;
+            }
+            .wind-badge {
+                font-size: 22px;
+            }
+            .btn-win, .player-actions button {
+                font-size: 13px;
+                padding: 10px 4px;
+            }
+            .records-section {
+                padding: 12px;
+            }
+        }
+        
+        /* 结算弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #1e4d2e 0%, #153825 100%);
+            border-radius: 25px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 3px solid;
+            border-image: linear-gradient(135deg, #ffd700, #b8860b) 1;
+            box-shadow: 0 0 50px rgba(255,215,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .modal-header h2 {
+            font-size: 28px;
+            background: linear-gradient(180deg, #ffd700 0%, #ff8c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px rgba(255,215,0,0.3);
+        }
+        .modal-header .subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .result-list {
+            margin-bottom: 25px;
+        }
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+            transition: all 0.3s;
+        }
+        .result-item:hover {
+            background: rgba(0,0,0,0.4);
+            transform: translateX(5px);
+        }
+        .result-item.rank-1 {
+            border-left-color: #ffd700;
+            background: linear-gradient(90deg, rgba(255,215,0,0.15) 0%, rgba(0,0,0,0.3) 100%);
+        }
+        .result-item.rank-2 {
+            border-left-color: #c0c0c0;
+            background: linear-gradient(90deg, rgba(192,192,192,0.1) 0%, rgba(0,0,0,0.3) 100%);
+        }
+        .result-item.rank-3 {
+            border-left-color: #cd7f32;
+            background: linear-gradient(90deg, rgba(205,127,50,0.1) 0%, rgba(0,0,0,0.3) 100%);
+        }
+        .result-rank {
+            font-size: 32px;
+            font-weight: 900;
+            width: 50px;
+            text-align: center;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .result-rank.rank-1 { color: #ffd700; }
+        .result-rank.rank-2 { color: #c0c0c0; }
+        .result-rank.rank-3 { color: #cd7f32; }
+        .result-rank.rank-other { color: rgba(255,255,255,0.5); }
+        .result-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+        .result-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .result-stats {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+        .result-stats span {
+            margin-right: 12px;
+        }
+        .result-score {
+            font-size: 36px;
+            font-weight: 900;
+            text-align: right;
+        }
+        .result-score.positive { color: #00ff88; }
+        .result-score.negative { color: #ff4444; }
+        .modal-footer {
+            display: flex;
+            gap: 15px;
+        }
+        .modal-footer button {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .btn-end-game {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231,76,60,0.4);
+        }
+        .btn-end-game:hover {
+            box-shadow: 0 6px 25px rgba(231,76,60,0.6);
+        }
+        
+        /* 确认弹窗样式 */
+        .confirm-modal .modal-content {
+            max-width: 400px;
+            text-align: center;
+            padding: 35px 30px;
+        }
+        .confirm-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: iconPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .confirm-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .confirm-message {
+            font-size: 16px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .confirm-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        .confirm-buttons button {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+        }
+        .btn-cancel {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.1) 100%);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .btn-cancel:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%);
+        }
+        .btn-confirm {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231,76,60,0.4);
+        }
+        .btn-confirm:hover {
+            box-shadow: 0 6px 25px rgba(231,76,60,0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题区域 -->
+        <div class="header">
+            <h1>温州麻将计分器</h1>
+            <div class="subtitle">版权所有：zjwzhqc</div>
+        </div>
+        
+        <!-- 连庄信息 -->
+        <div class="consecutive-info">
+            <div class="info-item">
+                <span class="label">当前庄家</span>
+                <span class="dealer-name" id="dealerLabel">东风(玩家1)</span>
+            </div>
+            <div class="info-item">
+                <span class="label">当前局数</span>
+                <span class="value" id="consecutiveRounds">第 1 把</span>
+            </div>
+        </div>
+        
+        <!-- 玩家区域 -->
+        <div class="players-section" id="playersSection">
+            <div class="player-card dealer" data-index="0">
+                <span class="dealer-badge">庄</span>
+                <div class="wind-badge">东</div>
+                <input type="text" class="player-name" value="玩家1" placeholder="输入名字">
+                <div class="score" id="score-0">0</div>
+                <div class="stats">
+                    财神: <span id="caishen-0">0</span> |
+                    杠牌: <span id="gang-0">0</span> |
+                    胡牌: <span id="win-0">0</span>
+                </div>
+                <div class="btn-win-group" id="win-buttons-0">
+                    <button class="btn-win" onclick="dealerWin('hard')">硬胡</button>
+                    <button class="btn-win" onclick="dealerWin('soft')">软胡</button>
+                </div>
+                <div class="player-actions">
+                    <button class="btn-caishen" onclick="addCaishenToPlayer(0)">+财神</button>
+                    <button class="btn-gang" onclick="addGangToPlayer(0)">+杠牌</button>
+                </div>
+                <button class="btn-zhahu" id="zhahu-0" onclick="showZhaHuDialog(0)">💣 炸胡</button>
+            </div>
+            <div class="player-card" data-index="1">
+                <div class="wind-badge">南</div>
+                <input type="text" class="player-name" value="玩家2" placeholder="输入名字">
+                <div class="score" id="score-1">0</div>
+                <div class="stats">
+                    财神: <span id="caishen-1">0</span> |
+                    杠牌: <span id="gang-1">0</span> |
+                    胡牌: <span id="win-1">0</span>
+                </div>
+                <div class="btn-win-group" id="win-buttons-1">
+                    <button class="btn-win" onclick="playerWinByIndex(1, 'hard')">硬胡</button>
+                    <button class="btn-win" onclick="playerWinByIndex(1, 'soft')">软胡</button>
+                </div>
+                <div class="player-actions">
+                    <button class="btn-caishen" onclick="addCaishenToPlayer(1)">+财神</button>
+                    <button class="btn-gang" onclick="addGangToPlayer(1)">+杠牌</button>
+                </div>
+                <button class="btn-zhahu" id="zhahu-1" onclick="showZhaHuDialog(1)">💣 炸胡</button>
+            </div>
+            <div class="player-card" data-index="2">
+                <div class="wind-badge">西</div>
+                <input type="text" class="player-name" value="玩家3" placeholder="输入名字">
+                <div class="score" id="score-2">0</div>
+                <div class="stats">
+                    财神: <span id="caishen-2">0</span> |
+                    杠牌: <span id="gang-2">0</span> |
+                    胡牌: <span id="win-2">0</span>
+                </div>
+                <div class="btn-win-group" id="win-buttons-2">
+                    <button class="btn-win" onclick="playerWinByIndex(2, 'hard')">硬胡</button>
+                    <button class="btn-win" onclick="playerWinByIndex(2, 'soft')">软胡</button>
+                </div>
+                <div class="player-actions">
+                    <button class="btn-caishen" onclick="addCaishenToPlayer(2)">+财神</button>
+                    <button class="btn-gang" onclick="addGangToPlayer(2)">+杠牌</button>
+                </div>
+                <button class="btn-zhahu" id="zhahu-2" onclick="showZhaHuDialog(2)">💣 炸胡</button>
+            </div>
+            <div class="player-card" data-index="3">
+                <div class="wind-badge">北</div>
+                <input type="text" class="player-name" value="玩家4" placeholder="输入名字">
+                <div class="score" id="score-3">0</div>
+                <div class="stats">
+                    财神: <span id="caishen-3">0</span> |
+                    杠牌: <span id="gang-3">0</span> |
+                    胡牌: <span id="win-3">0</span>
+                </div>
+                <div class="btn-win-group" id="win-buttons-3">
+                    <button class="btn-win" onclick="playerWinByIndex(3, 'hard')">硬胡</button>
+                    <button class="btn-win" onclick="playerWinByIndex(3, 'soft')">软胡</button>
+                </div>
+                <div class="player-actions">
+                    <button class="btn-caishen" onclick="addCaishenToPlayer(3)">+财神</button>
+                    <button class="btn-gang" onclick="addGangToPlayer(3)">+杠牌</button>
+                </div>
+                <button class="btn-zhahu" id="zhahu-3" onclick="showZhaHuDialog(3)">💣 炸胡</button>
+            </div>
+            <div class="player-card" data-index="4" id="playerCard4">
+                <div class="wind-badge">白板</div>
+                <input type="text" class="player-name" value="玩家5" placeholder="输入名字">
+                <div class="score" id="score-4">0</div>
+                <div class="stats">
+                    财神: <span id="caishen-4">0</span> |
+                    杠牌: <span id="gang-4">0</span> |
+                    胡牌: <span id="win-4">0</span>
+                </div>
+                <div class="btn-win-group" id="win-buttons-4">
+                    <button class="btn-win" onclick="playerWinByIndex(4, 'hard')">硬胡</button>
+                    <button class="btn-win" onclick="playerWinByIndex(4, 'soft')">软胡</button>
+                </div>
+                <div class="player-actions">
+                    <button class="btn-caishen" onclick="addCaishenToPlayer(4)">+财神</button>
+                    <button class="btn-gang" onclick="addGangToPlayer(4)">+杠牌</button>
+                </div>
+                <button class="btn-zhahu" id="zhahu-4" onclick="showZhaHuDialog(4)">💣 炸胡</button>
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <div class="action-card">
+                <h3>🀄 牌局控制</h3>
+                <div class="btn-group">
+                    <button id="playerCountBtn" class="secondary" onclick="showPlayerCountSelector()">5人局</button>
+                    <button class="secondary" onclick="nextRound()">流牌（庄家下庄）</button>
+                    <button class="btn-double-mini" id="globalDoubleBtn" onclick="toggleGlobalDouble()">开启双翻</button>
+                    <button class="secondary" onclick="resetGame()">重置牌局</button>
+                </div>
+            </div>
+            <div class="action-card">
+                <h3>⏪ 撤销/返回</h3>
+                <div class="btn-group">
+                    <button class="secondary" id="undoBtn" onclick="undoLast()">↩️ 返回上一步</button>
+                    <button class="secondary" id="redoBtn" onclick="redoLast()">↪️ 返回下一步</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 结束牌局按钮 -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button class="btn-end-game" onclick="showGameResult()" style="padding: 14px 40px; font-size: 16px;">🏆 结束牌局 查看结算</button>
+        </div>
+        
+        <!-- 记录列表 -->
+        <div class="records-section">
+            <h3>📋 计分记录</h3>
+            <div id="recordsList"></div>
+        </div>
+    </div>
+    
+    <!-- 结算弹窗 -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 牌局结算</h2>
+                <div class="subtitle">最终排名与数据统计</div>
+            </div>
+            <!-- 乘数输入 -->
+            <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <div style="font-size: 16px; margin-bottom: 12px;">积分价值 = <span id="multiplierDisplay" style="color: #ffd700; font-weight: bold; font-size: 24px;">2.5</span></div>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 10px;">
+                    <button onclick="setMultiplier(2.5)" class="mult-btn" id="mult-2.5" style="padding: 12px 28px; font-size: 18px; border-radius: 10px; border: none; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a1a; font-weight: bold; box-shadow: 0 0 10px rgba(255,215,0,0.5);">2.5</button>
+                    <button onclick="setMultiplier(5)" class="mult-btn" id="mult-5" style="padding: 12px 28px; font-size: 18px; border-radius: 10px; border: 2px solid rgba(255,215,0,0.5); background: rgba(255,255,255,0.1); color: #fff; font-weight: bold;">5</button>
+                    <button onclick="setMultiplier(10)" class="mult-btn" id="mult-10" style="padding: 12px 28px; font-size: 18px; border-radius: 10px; border: 2px solid rgba(255,215,0,0.5); background: rgba(255,255,255,0.1); color: #fff; font-weight: bold;">10</button>
+                </div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.6);">最终得分 = 牌局得分 × Y</div>
+            </div>
+            <div class="result-list" id="resultList"></div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="closeResultModal()">返回牌局</button>
+                <button class="btn-end-game" onclick="confirmEndGame()">确认结束并重置</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 确认弹窗 -->
+    <div class="modal-overlay confirm-modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="confirm-icon">⚠️</div>
+            <div class="confirm-title">确认重置牌局</div>
+            <div class="confirm-message">确定要重置牌局吗？<br>所有分数、财神、杠牌、胡牌次数将被清空！</div>
+            <div class="confirm-buttons">
+                <button class="btn-cancel" onclick="closeConfirmModal()">取消</button>
+                <button class="btn-confirm" onclick="executeReset()">确认重置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用确认弹窗 -->
+    <div class="modal-overlay confirm-modal" id="genericConfirmModal">
+        <div class="modal-content">
+            <div class="confirm-icon" id="genericConfirmIcon">⚠️</div>
+            <div class="confirm-title" id="genericConfirmTitle">确认操作</div>
+            <div class="confirm-message" id="genericConfirmMessage">确定要执行此操作吗？</div>
+            <div class="confirm-buttons">
+                <button class="btn-cancel" onclick="closeGenericConfirm()">取消</button>
+                <button class="btn-confirm" id="genericConfirmBtn" onclick="executeGenericConfirm()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 人数选择弹窗 -->
+    <div class="modal-overlay confirm-modal" id="playerCountModal">
+        <div class="modal-content">
+            <div class="confirm-icon">👥</div>
+            <div class="confirm-title">选择人数</div>
+            <div style="display: flex; gap: 15px; justify-content: center; margin: 20px 0;">
+                <button onclick="selectPlayerCount(3)" id="countBtn3" style="padding: 20px 35px; font-size: 24px; border-radius: 15px; border: 3px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; font-weight: bold; cursor: pointer; transition: all 0.2s;">3人</button>
+                <button onclick="selectPlayerCount(4)" id="countBtn4" style="padding: 20px 35px; font-size: 24px; border-radius: 15px; border: 3px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; font-weight: bold; cursor: pointer; transition: all 0.2s;">4人</button>
+                <button onclick="selectPlayerCount(5)" id="countBtn5" style="padding: 20px 35px; font-size: 24px; border-radius: 15px; border: 3px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; font-weight: bold; cursor: pointer; transition: all 0.2s;">5人</button>
+            </div>
+            <div class="confirm-buttons" style="margin-top: 15px;">
+                <button class="btn-cancel" onclick="closePlayerCountModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 炸胡弹窗 -->
+    <div class="modal-overlay confirm-modal" id="zhaHuModal">
+        <div class="modal-content">
+            <div class="confirm-icon">💣</div>
+            <div class="confirm-title">炸胡罚分</div>
+            <div class="confirm-message">
+                <div style="margin-bottom: 20px;">请输入罚分倍数 X</div>
+                <input type="number" id="zhaHuInput" min="1" value="1" style="width: 120px; padding: 15px; font-size: 36px; text-align: center; border-radius: 12px; border: 3px solid #ffd700; background: rgba(0,0,0,0.4); color: #fff;">
+                <div style="margin-top: 15px; font-size: 14px; color: rgba(255,255,255,0.7);">
+                    被罚玩家扣 (参与人数-1)×X 分，其他玩家各加 X 分
+                </div>
+            </div>
+            <div class="confirm-buttons">
+                <button class="btn-cancel" onclick="closeZhaHuModal()">取消</button>
+                <button class="btn-confirm" style="background: linear-gradient(135deg, #ff3b30, #cc0000);" onclick="confirmZhaHu()">确认罚分</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            players: [
+                { name: '玩家1', score: 0, caishen: 0, gang: 0, winCount: 0, wind: '东' },
+                { name: '玩家2', score: 0, caishen: 0, gang: 0, winCount: 0, wind: '南' },
+                { name: '玩家3', score: 0, caishen: 0, gang: 0, winCount: 0, wind: '西' },
+                { name: '玩家4', score: 0, caishen: 0, gang: 0, winCount: 0, wind: '北' },
+                { name: '玩家5', score: 0, caishen: 0, gang: 0, winCount: 0, wind: '白板' }
+            ],
+            dealerIndex: 0,
+            idleIndex: 4,         // 轮空玩家索引，默认白板（索引4）轮空
+            consecutiveRounds: 1,
+            records: [],
+            globalDouble: false,  // 全局双翻状态
+            playerCount: 5        // 当前局人数：3、4 或 5，默认5人局
+        };
+
+        // localStorage key
+        const STORAGE_KEY = 'wenzhou_mahjong_state';
+        
+        // 保存状态到 localStorage
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+            } catch (e) {
+                console.warn('localStorage 保存失败:', e);
+            }
+        }
+        
+        // 从 localStorage 清除存档
+        function clearSavedState() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (e) {
+                console.warn('localStorage 清除失败:', e);
+            }
+        }
+
+        // 通用确认弹窗相关
+        let genericConfirmCallback = null;
+
+        function showGenericConfirm(title, message, onConfirm, icon = '⚠️', btnText = '确认') {
+            document.getElementById('genericConfirmIcon').textContent = icon;
+            document.getElementById('genericConfirmTitle').textContent = title;
+            document.getElementById('genericConfirmMessage').innerHTML = message;
+            document.getElementById('genericConfirmBtn').textContent = btnText;
+            genericConfirmCallback = onConfirm;
+            document.getElementById('genericConfirmModal').classList.add('active');
+        }
+
+        function closeGenericConfirm() {
+            document.getElementById('genericConfirmModal').classList.remove('active');
+            genericConfirmCallback = null;
+        }
+
+        function executeGenericConfirm() {
+            const callback = genericConfirmCallback;
+            document.getElementById('genericConfirmModal').classList.remove('active');
+            genericConfirmCallback = null;
+            if (callback) {
+                callback();
+            }
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('genericConfirmModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGenericConfirm();
+            }
+        });
+        
+        // 从 localStorage 恢复状态（返回是否成功）
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // 验证基本结构
+                    if (parsed && parsed.players && Array.isArray(parsed.players)) {
+                        restoreGameState(parsed);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('localStorage 恢复失败:', e);
+            }
+            return false;
+        }
+        
+        // 历史记录栈（用于撤销）
+        let historyStack = [];
+        // 重做栈（用于重做）
+        let redoStack = [];
+        // 最大历史记录数
+        const MAX_HISTORY = 50;
+
+        // 炸胡相关
+        let pendingZhaHuPlayerIndex = -1;
+
+        // 显示炸胡弹窗
+        function showZhaHuDialog(playerIndex) {
+            // 检查玩家是否轮空（5人局）
+            if (!isPlayerActive(playerIndex)) {
+                alert('该玩家本轮轮空，不能炸胡！');
+                return;
+            }
+            pendingZhaHuPlayerIndex = playerIndex;
+            document.getElementById('zhaHuInput').value = 1;
+            document.getElementById('zhaHuModal').classList.add('active');
+        }
+
+        // 关闭炸胡弹窗
+        function closeZhaHuModal() {
+            document.getElementById('zhaHuModal').classList.remove('active');
+            pendingZhaHuPlayerIndex = -1;
+        }
+
+        // 确认炸胡罚分
+        function confirmZhaHu() {
+            const inputEl = document.getElementById('zhaHuInput');
+            let x = parseInt(inputEl.value, 10);
+            if (isNaN(x) || x < 1) {
+                alert('请输入有效的罚分倍数（≥1）');
+                return;
+            }
+
+            const playerIndex = pendingZhaHuPlayerIndex;
+            closeZhaHuModal();
+
+            if (playerIndex < 0) return;
+
+            // 保存当前状态到历史
+            saveToHistory();
+
+            const player = gameState.players[playerIndex];
+            const activeCount = getActivePlayerCount();
+
+            // 被罚玩家扣分 = (参与人数-1) × X
+            const loseScore = (activeCount - 1) * x;
+            player.score -= loseScore;
+
+            // 其他参与玩家各加 X 分
+            const others = [];
+            gameState.players.forEach((p, i) => {
+                if (i !== playerIndex && isPlayerActive(i)) {
+                    p.score += x;
+                    others.push(`${p.name} +${x}`);
+                }
+            });
+
+            addRecord(`💣 ${player.name} 炸胡罚分${x}倍: ${player.name} -${loseScore}, ${others.join(', ')}`, -loseScore);
+            updateDisplay();
+        }
+
+        // 庄家连胡得分表
+        const dealerScores = {
+            1: { hard: 4, soft: 2 },
+            2: { hard: 8, soft: 4 },
+            3: { hard: 12, soft: 6 },
+            4: { hard: 16, soft: 8 }
+        };
+
+        // 闲家胡牌得分表 [闲家得分, 庄家扣分, 其他闲家扣分]
+        const playerScores = {
+            1: { hard: [8, 4, 2], soft: [4, 2, 1] },
+            2: { hard: [12, 8, 2], soft: [6, 4, 1] },
+            3: { hard: [16, 12, 2], soft: [8, 6, 1] },
+            4: { hard: [20, 16, 2], soft: [10, 8, 1] }
+        };
+
+        // 获取玩家在当前风位下的显示名称
+        function getPlayerDisplayName(index) {
+            const player = gameState.players[index];
+            const isDealer = index === gameState.dealerIndex;
+            return `${player.wind}${isDealer ? '(庄家)' : ''} ${player.name}`;
+        }
+        
+        // 更新下拉选择框选项（已废弃，保留函数兼容性）
+        function updateSelectOptions() {
+            // 界面已改为直接在玩家卡片上操作，此函数保留用于兼容性
+        }
+        
+        // 更新显示
+        function updateDisplay() {
+            const isThreeMode = isThreePlayerMode();
+            const isFiveMode = isFivePlayerMode();
+            const activeCount = getActivePlayerCount();
+            
+            // 更新玩家区域布局
+            const playersSection = document.getElementById('playersSection');
+            playersSection.classList.remove('three-player', 'five-player');
+            if (isThreeMode) {
+                playersSection.classList.add('three-player');
+            } else if (isFiveMode) {
+                playersSection.classList.add('five-player');
+            }
+
+            // 隐藏/显示第4、5个玩家卡片
+            const card3 = document.querySelector('.player-card[data-index="3"]');
+            const card4 = document.getElementById('playerCard4');
+            if (card3) {
+                card3.style.display = isThreeMode ? 'none' : '';
+            }
+            if (card4) {
+                card4.style.display = isFiveMode ? '' : 'none';
+            }
+            
+            // 更新玩家分数和状态
+            gameState.players.forEach((player, index) => {
+                const scoreEl = document.getElementById(`score-${index}`);
+                const caishenEl = document.getElementById(`caishen-${index}`);
+                const gangEl = document.getElementById(`gang-${index}`);
+                const winEl = document.getElementById(`win-${index}`);
+                
+                if (scoreEl) {
+                    scoreEl.textContent = player.score;
+                    scoreEl.className = 'score ' + (player.score >= 0 ? 'positive' : 'negative');
+                }
+                if (caishenEl) caishenEl.textContent = player.caishen;
+                if (gangEl) gangEl.textContent = player.gang;
+                if (winEl) winEl.textContent = player.winCount;
+            });
+            
+            // 更新连庄显示
+            document.getElementById('consecutiveRounds').textContent = `第 ${gameState.consecutiveRounds} 把`;
+            
+            // 更新当前庄家标签
+            const dealerLabel = document.getElementById('dealerLabel');
+            const dealer = gameState.players[gameState.dealerIndex];
+            dealerLabel.textContent = `${dealer.wind}风(${dealer.name})`;
+            
+            // 更新双翻按钮状态
+            const globalDoubleBtn = document.getElementById('globalDoubleBtn');
+            if (globalDoubleBtn) {
+                if (gameState.globalDouble) {
+                    globalDoubleBtn.textContent = '✓ 双翻已开启';
+                    globalDoubleBtn.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+                    globalDoubleBtn.style.boxShadow = '0 0 12px rgba(243,156,18,0.6)';
+                } else {
+                    globalDoubleBtn.textContent = '开启双翻';
+                    globalDoubleBtn.style.background = '';
+                    globalDoubleBtn.style.boxShadow = '';
+                }
+            }
+
+            // 更新人数切换按钮
+            const playerCountBtn = document.getElementById('playerCountBtn');
+            if (playerCountBtn) {
+                if (isThreeMode) {
+                    playerCountBtn.textContent = '3人局';
+                } else if (isFiveMode) {
+                    playerCountBtn.textContent = '5人局';
+                } else {
+                    playerCountBtn.textContent = '4人局';
+                }
+            }
+
+            // 更新庄家标记、轮空标记和胡牌按钮
+            document.querySelectorAll('.player-card').forEach((card, index) => {
+                const winButtons = document.getElementById(`win-buttons-${index}`);
+                
+                // 清除旧标记
+                card.classList.remove('dealer', 'idle');
+                const oldDealerBadge = card.querySelector('.dealer-badge');
+                const oldIdleBadge = card.querySelector('.idle-badge');
+                if (oldDealerBadge) oldDealerBadge.remove();
+                if (oldIdleBadge) oldIdleBadge.remove();
+
+                // 5人局轮空处理
+                if (isFiveMode && index === gameState.idleIndex) {
+                    card.classList.add('idle');
+                    const idleBadge = document.createElement('span');
+                    idleBadge.className = 'idle-badge';
+                    idleBadge.textContent = '轮空';
+                    card.insertBefore(idleBadge, card.firstChild);
+                    if (winButtons) {
+                        winButtons.innerHTML = '<button class="btn-win" disabled style="opacity:0.3;cursor:not-allowed;">轮空中</button>';
+                    }
+                    // 禁用炸胡按钮
+                    const zhahuBtn = document.getElementById(`zhahu-${index}`);
+                    if (zhahuBtn) {
+                        zhahuBtn.disabled = true;
+                        zhahuBtn.textContent = '轮空中';
+                    }
+                    return; // 轮空玩家不处理其他标记
+                }
+
+                if (index === gameState.dealerIndex) {
+                    card.classList.add('dealer');
+                    const badge = document.createElement('span');
+                    badge.className = 'dealer-badge';
+                    badge.textContent = '庄家';
+                    card.insertBefore(badge, card.firstChild);
+                    if (winButtons) {
+                        winButtons.innerHTML = `
+                            <button class="btn-win" onclick="dealerWin('hard')">硬胡</button>
+                            <button class="btn-win" onclick="dealerWin('soft')">软胡</button>
+                        `;
+                    }
+                } else {
+                    if (winButtons) {
+                        winButtons.innerHTML = `
+                            <button class="btn-win" onclick="playerWinByIndex(${index}, 'hard')">硬胡</button>
+                            <button class="btn-win" onclick="playerWinByIndex(${index}, 'soft')">软胡</button>
+                        `;
+                    }
+                }
+                // 启用炸胡按钮（非轮空玩家）
+                const zhahuBtn = document.getElementById(`zhahu-${index}`);
+                if (zhahuBtn) {
+                    zhahuBtn.disabled = false;
+                    zhahuBtn.textContent = '💣 炸胡';
+                }
+            });
+
+            // 更新下拉选择框
+            updateSelectOptions();
+            
+            // 更新记录
+            updateRecords();
+            
+            // 保存状态到 localStorage
+            saveState();
+        }
+
+        // 更新记录列表
+        function updateRecords() {
+            const recordsList = document.getElementById('recordsList');
+            recordsList.innerHTML = '';
+            
+            [...gameState.records].reverse().forEach(record => {
+                const item = document.createElement('div');
+                item.className = 'record-item';
+                
+                const scoreClass = record.scoreChange > 0 ? 'positive' : (record.scoreChange < 0 ? 'negative' : '');
+                const scoreSign = record.scoreChange > 0 ? '+' : '';
+                
+                item.innerHTML = `
+                    <span class="round">${record.round}</span>
+                    <span class="action">${record.action}</span>
+                    <span class="score-change ${scoreClass}">${scoreSign}${record.scoreChange}</span>
+                `;
+                recordsList.appendChild(item);
+            });
+        }
+
+        // 判断是否为3人模式
+        function isThreePlayerMode() {
+            return gameState.playerCount === 3;
+        }
+
+        // 判断是否为5人模式
+        function isFivePlayerMode() {
+            return gameState.playerCount === 5;
+        }
+
+        // 获取有效玩家数量（排除轮空玩家）
+        function getActivePlayerCount() {
+            if (isFivePlayerMode()) {
+                return 4; // 5人局实际4人参与
+            }
+            return gameState.playerCount;
+        }
+        
+        // 检查玩家是否参与当前局（非轮空）
+        function isPlayerActive(playerIndex) {
+            if (!isFivePlayerMode()) return true;
+            return playerIndex !== gameState.idleIndex;
+        }
+
+        // 深拷贝游戏状态（用于保存快照）
+        function cloneGameState() {
+            return {
+                players: gameState.players.map(p => ({ ...p })),
+                dealerIndex: gameState.dealerIndex,
+                idleIndex: gameState.idleIndex,
+                consecutiveRounds: gameState.consecutiveRounds,
+                records: gameState.records.map(r => ({ ...r })),
+                globalDouble: gameState.globalDouble,
+                playerCount: gameState.playerCount
+            };
+        }
+
+        // 恢复游戏状态
+        function restoreGameState(state) {
+            gameState.players = state.players.map(p => ({ ...p }));
+            gameState.dealerIndex = state.dealerIndex;
+            gameState.idleIndex = state.idleIndex;
+            gameState.consecutiveRounds = state.consecutiveRounds;
+            gameState.records = state.records.map(r => ({ ...r }));
+            gameState.globalDouble = state.globalDouble;
+            gameState.playerCount = state.playerCount;
+        }
+
+        // 保存当前状态到历史记录
+        function saveToHistory() {
+            // 保存当前状态快照
+            const snapshot = cloneGameState();
+            historyStack.push(snapshot);
+            
+            // 如果超过最大历史数，移除最旧的记录
+            if (historyStack.length > MAX_HISTORY) {
+                historyStack.shift();
+            }
+            
+            // 清空重做栈（因为新操作会清空重做历史）
+            redoStack = [];
+            
+            // 更新按钮状态
+            updateUndoRedoButtons();
+        }
+
+        // 更新撤销/重做按钮状态
+        function updateUndoRedoButtons() {
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            
+            if (undoBtn) {
+                undoBtn.disabled = historyStack.length === 0;
+                undoBtn.style.opacity = historyStack.length === 0 ? '0.5' : '1';
+            }
+            if (redoBtn) {
+                redoBtn.disabled = redoStack.length === 0;
+                redoBtn.style.opacity = redoStack.length === 0 ? '0.5' : '1';
+            }
+        }
+
+        // 显示人数选择弹窗
+        function showPlayerCountSelector() {
+            // 更新按钮高亮状态
+            updatePlayerCountButtons();
+            document.getElementById('playerCountModal').classList.add('active');
+        }
+
+        // 更新人数选择按钮的高亮状态
+        function updatePlayerCountButtons() {
+            [3, 4, 5].forEach(count => {
+                const btn = document.getElementById(`countBtn${count}`);
+                if (btn) {
+                    if (count === gameState.playerCount) {
+                        btn.style.background = 'linear-gradient(135deg, #ffd700, #ff8c00)';
+                        btn.style.border = 'none';
+                        btn.style.color = '#1a1a1a';
+                        btn.style.boxShadow = '0 0 15px rgba(255,215,0,0.5)';
+                    } else {
+                        btn.style.background = 'rgba(255,255,255,0.1)';
+                        btn.style.border = '3px solid rgba(255,255,255,0.3)';
+                        btn.style.color = '#fff';
+                        btn.style.boxShadow = 'none';
+                    }
+                }
+            });
+        }
+
+        // 关闭人数选择弹窗
+        function closePlayerCountModal() {
+            document.getElementById('playerCountModal').classList.remove('active');
+        }
+
+        // 选择人数
+        function selectPlayerCount(count) {
+            closePlayerCountModal();
+            
+            if (count === gameState.playerCount) {
+                // 人数没变，不需要确认
+                return;
+            }
+            
+            showGenericConfirm(
+                '切换人数',
+                `确定要从${gameState.playerCount}人局切换到${count}人局吗？`,
+                () => executePlayerCountChange(count),
+                '👥',
+                '确认切换'
+            );
+        }
+
+        // 执行人数切换
+        function executePlayerCountChange(targetCount) {
+            saveToHistory();
+            
+            if (targetCount === 3) {
+                gameState.playerCount = 3;
+                gameState.idleIndex = -1;
+                // 如果庄家是第4或5位，强制切换到东风
+                if (gameState.dealerIndex >= 3) {
+                    gameState.dealerIndex = 0;
+                    gameState.consecutiveRounds = 1;
+                }
+            } else if (targetCount === 4) {
+                gameState.playerCount = 4;
+                gameState.idleIndex = -1;
+            } else if (targetCount === 5) {
+                gameState.playerCount = 5;
+                // 初始轮空：白板（索引4）
+                gameState.idleIndex = 4;
+                // 如果当前庄家是白板，调整到东风
+                if (gameState.dealerIndex === 4) {
+                    gameState.dealerIndex = 0;
+                }
+            }
+            addRecord(`切换为${gameState.playerCount}人局`, 0);
+            updateDisplay();
+        }
+
+        // 保留旧函数名（兼容）
+        function executeTogglePlayerCount() {
+            // 已废弃，保留空函数
+        }
+
+        // 添加记录
+        function addRecord(action, scoreChange) {
+            gameState.records.push({
+                round: `第${gameState.consecutiveRounds}把`,
+                action: action,
+                scoreChange: scoreChange,
+                timestamp: Date.now()
+            });
+        }
+
+        // 给指定玩家添加财神牌（每次+1）
+        function addCaishenToPlayer(playerIndex) {
+            // 检查玩家是否轮空（5人局）
+            if (!isPlayerActive(playerIndex)) {
+                alert('该玩家本轮轮空，不能获得财神牌！');
+                return;
+            }
+            
+            // 保存当前状态到历史
+            saveToHistory();
+            
+            const player = gameState.players[playerIndex];
+            player.caishen += 1;
+            
+            const isThreeMode = isThreePlayerMode();
+            const isFiveMode = isFivePlayerMode();
+            const activeCount = getActivePlayerCount();
+            
+            // 3人模式：每张财神牌自己+2，其他两家各-1
+            // 4人/5人模式：每张财神牌自己+3，其他三家各-1（5人局排除轮空玩家）
+            let totalGain = isThreeMode ? 2 : 3;
+            
+            // 使用全局双翻
+            const hasDouble = gameState.globalDouble;
+            if (hasDouble) {
+                totalGain *= 2;
+            }
+
+            player.score += totalGain;
+            
+            const others = [];
+            const loseScore = hasDouble ? 2 : 1;
+            gameState.players.forEach((p, i) => {
+                // 排除自己、轮空玩家和超出范围的玩家
+                if (i !== playerIndex && isPlayerActive(i) && i < gameState.players.length) {
+                    p.score -= loseScore;
+                    others.push(`${p.name} -${loseScore}`);
+                }
+            });
+            
+            const doubleText = hasDouble ? ' (双翻)' : '';
+            addRecord(`${player.name} 获得1张财神牌${doubleText}: ${player.name} +${totalGain}, ${others.join(', ')}`, totalGain);
+            
+            // 语音播报
+            speak(player.name + '财神！');
+            
+            updateDisplay();
+        }
+
+        // 给指定玩家添加杠牌（每次+1）
+        function addGangToPlayer(playerIndex) {
+            // 检查玩家是否轮空（5人局）
+            if (!isPlayerActive(playerIndex)) {
+                alert('该玩家本轮轮空，不能杠牌！');
+                return;
+            }
+            
+            // 保存当前状态到历史
+            saveToHistory();
+            
+            const player = gameState.players[playerIndex];
+            player.gang += 1;
+            
+            const isThreeMode = isThreePlayerMode();
+            const activeCount = getActivePlayerCount();
+            
+            // 3人模式：每次杠牌自己+2，其他两家各-1
+            // 4人/5人模式：每次杠牌自己+3，其他三家各-1（5人局排除轮空玩家）
+            const totalGain = isThreeMode ? 2 : 3;
+            player.score += totalGain;
+            
+            const others = [];
+            gameState.players.forEach((p, i) => {
+                // 排除自己、轮空玩家和超出范围的玩家
+                if (i !== playerIndex && isPlayerActive(i) && i < gameState.players.length) {
+                    p.score -= 1;
+                    others.push(`${p.name} -1`);
+                }
+            });
+            
+            addRecord(`${player.name} 杠牌1次: ${player.name} +${totalGain}, ${others.join(', ')}`, totalGain);
+            
+            // 语音播报
+            speak(player.name + '杠！');
+            
+            updateDisplay();
+        }
+
+        // 庄家胡牌
+        function dealerWin(type) {
+            // 保存当前状态到历史
+            saveToHistory();
+            
+            const scores = dealerScores[gameState.consecutiveRounds];
+            const score = type === 'hard' ? scores.hard : scores.soft;
+            const typeName = type === 'hard' ? '硬胡' : '软胡';
+            const dealer = gameState.players[gameState.dealerIndex];
+
+            const isThreeMode = isThreePlayerMode();
+            const activeCount = getActivePlayerCount();
+
+            let totalGain = score * (activeCount - 1);
+
+            // 使用全局双翻
+            const hasDouble = gameState.globalDouble;
+            if (hasDouble) {
+                totalGain *= 2;
+            }
+
+            dealer.score += totalGain;
+            dealer.winCount++; // 增加胡牌次数
+
+            const others = [];
+            gameState.players.forEach((p, i) => {
+                // 排除庄家自己和轮空玩家
+                if (i !== gameState.dealerIndex && isPlayerActive(i)) {
+                    const loseScore = hasDouble ? score * 2 : score;
+                    p.score -= loseScore;
+                    others.push(`${p.name} -${loseScore}`);
+                }
+            });
+
+            const doubleText = hasDouble ? ' (双翻)' : '';
+            addRecord(`庄家${dealer.name} ${typeName}${doubleText}: ${dealer.name} +${totalGain}, ${others.join(', ')}`, totalGain);
+            
+            // 语音播报
+            speak(dealer.name + '庄家' + typeName + '！');
+
+            if (gameState.consecutiveRounds < 4) {
+                gameState.consecutiveRounds++;
+            } else {
+                gameState.consecutiveRounds = 1;
+                // 5人局：庄家下庄后，新庄家的上一个玩家轮空
+                if (isFivePlayerMode()) {
+                    gameState.dealerIndex = (gameState.dealerIndex + 1) % 5;
+                    gameState.idleIndex = (gameState.dealerIndex + 4) % 5; // 新庄家的上一个玩家轮空（+4相当于-1）
+                } else {
+                    gameState.dealerIndex = (gameState.dealerIndex + 1) % activeCount;
+                }
+                addRecord('庄家连庄4把，强制下庄', 0);
+            }
+
+            updateDisplay();
+        }
+
+        // 闲家胡牌（通过玩家索引）
+        function playerWinByIndex(winnerIndex, type) {
+            if (winnerIndex === gameState.dealerIndex) {
+                alert('庄家请使用自己的胡牌按钮！');
+                return;
+            }
+            
+            // 检查玩家是否轮空（5人局）
+            if (!isPlayerActive(winnerIndex)) {
+                alert('该玩家本轮轮空，不能胡牌！');
+                return;
+            }
+            
+            // 保存当前状态到历史
+            saveToHistory();
+
+            const scores = playerScores[gameState.consecutiveRounds][type];
+            const typeName = type === 'hard' ? '硬胡' : '软胡';
+            const winner = gameState.players[winnerIndex];
+            const dealer = gameState.players[gameState.dealerIndex];
+            const activeCount = getActivePlayerCount();
+
+            // 使用全局双翻
+            const hasDouble = gameState.globalDouble;
+
+            // 赢家得分 = 庄家赔分 + 其他闲家赔分之和
+            // 3人局：其他闲家只有1个；4人局：其他闲家有2个；5人局排除轮空玩家
+            const otherPlayerCount = activeCount - 2; // 除赢家和庄家外的闲家数量
+            const baseWinnerGain = scores[1] + scores[2] * otherPlayerCount;
+            const winnerGain = hasDouble ? baseWinnerGain * 2 : baseWinnerGain;
+            winner.score += winnerGain;
+            winner.winCount++; // 增加胡牌次数
+
+            const dealerLoss = hasDouble ? scores[1] * 2 : scores[1];
+            dealer.score -= dealerLoss;
+
+            const others = [];
+            gameState.players.forEach((p, i) => {
+                // 排除赢家、庄家和轮空玩家
+                if (i !== winnerIndex && i !== gameState.dealerIndex && isPlayerActive(i)) {
+                    const loseScore = hasDouble ? scores[2] * 2 : scores[2];
+                    p.score -= loseScore;
+                    others.push(`${p.name} -${loseScore}`);
+                }
+            });
+
+            const doubleText = hasDouble ? ' (双翻)' : '';
+            const othersText = others.length > 0 ? `, ${others.join(', ')}` : '';
+            addRecord(`${winner.name} ${typeName}${doubleText}: ${winner.name} +${winnerGain}, ${dealer.name}(庄家) -${dealerLoss}${othersText}`, winnerGain);
+            
+            // 语音播报
+            speak(winner.name + typeName + '！');
+
+            gameState.consecutiveRounds = 1;
+            
+            // 5人局：庄家下庄后，新庄家的上一个玩家轮空
+            if (isFivePlayerMode()) {
+                gameState.dealerIndex = (gameState.dealerIndex + 1) % 5;
+                gameState.idleIndex = (gameState.dealerIndex + 4) % 5; // 新庄家的上一个玩家轮空（+4相当于-1）
+            } else {
+                gameState.dealerIndex = (gameState.dealerIndex + 1) % activeCount;
+            }
+
+            updateDisplay();
+        }
+
+        // 双翻奖励 - 全局开关
+        function toggleGlobalDouble() {
+            // 保存当前状态到历史
+            saveToHistory();
+            
+            gameState.globalDouble = !gameState.globalDouble;
+            if (gameState.globalDouble) {
+                addRecord('开启双翻奖励（下一把胡牌翻倍）', 0);
+            } else {
+                addRecord('关闭双翻奖励', 0);
+            }
+            updateDisplay();
+        }
+
+        // 兼容旧的 addDoubleToPlayer（如有残留调用）
+        function addDoubleToPlayer(playerIndex) {
+            toggleGlobalDouble();
+        }
+
+        // 下一把（庄家下庄）
+        function nextRound() {
+            const dealer = gameState.players[gameState.dealerIndex];
+            showGenericConfirm(
+                '流牌确认',
+                `确定流牌吗？<br>庄家 <b>${dealer.name}</b> 将下庄，庄家轮换到下一位。`,
+                executeNextRound,
+                '🔄',
+                '确认流牌'
+            );
+        }
+
+        function executeNextRound() {
+            // 保存当前状态到历史
+            saveToHistory();
+            
+            const oldDealer = gameState.players[gameState.dealerIndex].name;
+            
+            // 重置连庄
+            gameState.consecutiveRounds = 1;
+            
+            const activeCount = getActivePlayerCount();
+            
+            // 5人局：庄家下庄后，新庄家的上一个玩家轮空
+            if (isFivePlayerMode()) {
+                gameState.dealerIndex = (gameState.dealerIndex + 1) % 5;
+                gameState.idleIndex = (gameState.dealerIndex + 4) % 5; // 新庄家的上一个玩家轮空（+4相当于-1）
+            } else {
+                // 轮换庄家 - 按固定顺序：东(0) -> 南(1) -> 西(2) -> [北(3)] -> 东(0)
+                // 3人模式时跳过北(3)，在0-2之间轮换
+                gameState.dealerIndex = (gameState.dealerIndex + 1) % activeCount;
+            }
+            
+            const newDealer = gameState.players[gameState.dealerIndex].name;
+            addRecord(`流牌：${oldDealer}下庄，${newDealer}成为新庄家`, 0);
+            
+            updateDisplay();
+        }
+
+        // 重置游戏 - 显示自定义确认弹窗
+        function resetGame() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.add('active');
+        }
+        
+        // 关闭确认弹窗
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('active');
+        }
+        
+        // 执行重置
+        function executeReset() {
+            closeConfirmModal();
+            
+            // 保存当前状态到历史（以便撤销重置）
+            saveToHistory();
+            
+            gameState.players.forEach(p => {
+                p.score = 0;
+                p.caishen = 0;
+                p.gang = 0;
+                p.winCount = 0;
+            });
+            // 清除 localStorage 存档
+            clearSavedState();
+            gameState.dealerIndex = 0;
+            gameState.consecutiveRounds = 1;
+            gameState.records = [];
+            gameState.globalDouble = false;
+            // 5人局重置时，白板轮空
+            if (isFivePlayerMode()) {
+                gameState.idleIndex = 4;
+            } else {
+                gameState.idleIndex = -1;
+            }
+            // playerCount 保留，重置后维持当前人数模式
+            
+            updateDisplay();
+        }
+
+        // 返回上一步
+        function undoLast() {
+            if (historyStack.length === 0) {
+                alert('没有可返回的操作');
+                return;
+            }
+            
+            // 保存当前状态到重做栈
+            const currentState = cloneGameState();
+            redoStack.push(currentState);
+            
+            // 恢复上一个状态
+            const previousState = historyStack.pop();
+            restoreGameState(previousState);
+            
+            // 更新按钮状态
+            updateUndoRedoButtons();
+            
+            // 更新显示
+            updateDisplay();
+            
+            // 添加返回上一步记录提示
+            addRecord('↩️ 返回上一步操作', 0);
+        }
+
+        // 返回下一步
+        function redoLast() {
+            if (redoStack.length === 0) {
+                alert('没有可返回的操作');
+                return;
+            }
+            
+            // 保存当前状态到历史栈
+            const currentState = cloneGameState();
+            historyStack.push(currentState);
+            
+            // 恢复重做栈中的状态
+            const nextState = redoStack.pop();
+            restoreGameState(nextState);
+            
+            // 更新按钮状态
+            updateUndoRedoButtons();
+            
+            // 更新显示
+            updateDisplay();
+            
+            // 添加返回下一步记录提示
+            addRecord('↪️ 返回下一步操作', 0);
+        }
+
+        // 监听玩家名字变化
+        document.querySelectorAll('.player-name').forEach((input, index) => {
+            input.addEventListener('change', (e) => {
+                gameState.players[index].name = e.target.value || `玩家${index + 1}`;
+                updateDisplay();
+            });
+        });
+
+        // 语音播报函数
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 1.1;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                const voices = window.speechSynthesis.getVoices();
+                const zhVoice = voices.find(v => v.lang.includes('zh'));
+                if (zhVoice) utterance.voice = zhVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // 初始化撤销/重做按钮状态
+        updateUndoRedoButtons();
+
+        // 尝试从 localStorage 恢复状态
+        if (!loadState()) {
+            // 无存档，使用默认状态
+        }
+
+        // 初始化
+        updateDisplay();
+        
+        // 显示牌局结算弹窗
+        // 存储排序后的玩家数据（用于更新显示）
+        let sortedPlayersData = [];
+        let currentMultiplier = 2.5; // 当前乘数，默认2.5
+
+        // 设置乘数
+        function setMultiplier(val) {
+            currentMultiplier = val;
+            document.getElementById('multiplierDisplay').textContent = val;
+            // 更新按钮样式
+            document.querySelectorAll('.mult-btn').forEach(btn => {
+                btn.style.background = 'rgba(255,255,255,0.1)';
+                btn.style.border = '2px solid rgba(255,215,0,0.5)';
+                btn.style.color = '#fff';
+                btn.style.boxShadow = 'none';
+            });
+            const activeBtn = document.getElementById(`mult-${val}`);
+            if (activeBtn) {
+                activeBtn.style.background = 'linear-gradient(135deg, #ffd700, #ff8c00)';
+                activeBtn.style.border = 'none';
+                activeBtn.style.color = '#1a1a1a';
+                activeBtn.style.boxShadow = '0 0 10px rgba(255,215,0,0.5)';
+            }
+            updateFinalScores();
+        }
+
+        function showGameResult() {
+            const modal = document.getElementById('resultModal');
+            const resultList = document.getElementById('resultList');
+            
+            // 重置乘数为2.5
+            currentMultiplier = 2.5;
+            setMultiplier(2.5);
+            
+            // 获取所有玩家（5人局显示全部）并排序（按分数从高到低）
+            const displayCount = isFivePlayerMode() ? 5 : getActivePlayerCount();
+            const allPlayers = gameState.players.slice(0, displayCount).map((p, index) => ({
+                ...p,
+                index: index,
+                isIdle: isFivePlayerMode() && index === gameState.idleIndex
+            }));
+            allPlayers.sort((a, b) => b.score - a.score);
+            
+            // 保存排序后的数据
+            sortedPlayersData = allPlayers;
+            
+            // 生成结算列表
+            updateFinalScores();
+            
+            modal.classList.add('active');
+        }
+
+        // 更新最终得分显示
+        function updateFinalScores() {
+            const resultList = document.getElementById('resultList');
+            const multiplier = currentMultiplier;
+            
+            let html = '';
+            sortedPlayersData.forEach((player, rank) => {
+                const rankClass = rank === 0 ? 'rank-1' : (rank === 1 ? 'rank-2' : (rank === 2 ? 'rank-3' : 'rank-other'));
+                const rankIcon = rank === 0 ? '🥇' : (rank === 1 ? '🥈' : (rank === 2 ? '🥉' : `<span style="font-size: 24px;">${rank + 1}</span>`));
+                const scoreSign = player.score >= 0 ? '+' : '';
+                const idleText = player.isIdle ? ' <span style="color:#888;font-size:12px;">(轮空)</span>' : '';
+                
+                // 计算最终得分
+                const finalScore = Math.round(player.score * multiplier * 10) / 10; // 保留一位小数
+                const finalScoreClass = finalScore >= 0 ? 'positive' : 'negative';
+                const finalScoreSign = finalScore >= 0 ? '+' : '';
+                
+                html += `
+                    <div class="result-item ${rankClass}" style="${player.isIdle ? 'opacity:0.6;' : ''}">
+                        <div class="result-rank ${rankClass}">${rankIcon}</div>
+                        <div class="result-info">
+                            <div class="result-name">${player.wind} ${player.name}${idleText}</div>
+                            <div class="result-stats">
+                                <span>🎯 财神: ${player.caishen}</span>
+                                <span>🀄 杠牌: ${player.gang}</span>
+                                <span>🏆 胡牌: ${player.winCount}</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 13px; color: rgba(255,255,255,0.5);">牌局: ${scoreSign}${player.score}</div>
+                            <div class="result-score ${finalScoreClass}">${finalScoreSign}${finalScore}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultList.innerHTML = html;
+        }
+        
+        // 关闭结算弹窗
+        function closeResultModal() {
+            const modal = document.getElementById('resultModal');
+            modal.classList.remove('active');
+        }
+        
+        // 确认结束牌局并重置
+        function confirmEndGame() {
+            closeResultModal();
+            // 直接重置，不再弹出确认框（因为结算弹窗本身已经是确认了）
+            executeReset();
+        }
+        
+        // 点击弹窗外部关闭
+        document.getElementById('resultModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeResultModal();
+            }
+        });
+        
+        // 点击确认弹窗外部关闭
+        document.getElementById('confirmModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeConfirmModal();
+            }
+        });
+
+        // 注册 Service Worker（PWA 离线支持）
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker 注册成功:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker 注册失败:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
