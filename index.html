@@ -1280,12 +1280,14 @@
 
             // 其他参与玩家各加 X 分
             const others = [];
-            gameState.players.forEach((p, i) => {
+            const playerCount = gameState.playerCount;
+            for (let i = 0; i < playerCount; i++) {
+                const p = gameState.players[i];
                 if (i !== playerIndex && isPlayerActive(i)) {
                     p.score += x;
                     others.push(`${p.name} +${x}`);
                 }
-            });
+            }
 
             addRecord(`💣 ${player.name} 罚分罚分${x}倍: ${player.name} -${loseScore}, ${others.join(', ')}`, -loseScore);
             updateDisplay();
@@ -1710,13 +1712,15 @@
             
             const others = [];
             const loseScore = hasDouble ? 2 : 1;
-            gameState.players.forEach((p, i) => {
-                // 排除自己、轮空玩家和超出范围的玩家
-                if (i !== playerIndex && isPlayerActive(i) && i < gameState.players.length) {
+            const playerCount = gameState.playerCount;
+            for (let i = 0; i < playerCount; i++) {
+                const p = gameState.players[i];
+                // 排除自己、轮空玩家
+                if (i !== playerIndex && isPlayerActive(i)) {
                     p.score -= loseScore;
                     others.push(`${p.name} -${loseScore}`);
                 }
-            });
+            }
             
             const doubleText = hasDouble ? ' (双翻)' : '';
             addRecord(`${player.name} 获得1张财神牌${doubleText}: ${player.name} +${totalGain}, ${others.join(', ')}`, totalGain);
@@ -1750,13 +1754,15 @@
             player.score += totalGain;
             
             const others = [];
-            gameState.players.forEach((p, i) => {
-                // 排除自己、轮空玩家和超出范围的玩家
-                if (i !== playerIndex && isPlayerActive(i) && i < gameState.players.length) {
+            const playerCount = gameState.playerCount;
+            for (let i = 0; i < playerCount; i++) {
+                const p = gameState.players[i];
+                // 排除自己、轮空玩家
+                if (i !== playerIndex && isPlayerActive(i)) {
                     p.score -= 1;
                     others.push(`${p.name} -1`);
                 }
-            });
+            }
             
             addRecord(`${player.name} 杠牌1次: ${player.name} +${totalGain}, ${others.join(', ')}`, totalGain);
             
