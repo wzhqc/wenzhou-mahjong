@@ -1350,6 +1350,13 @@
                 const caishenEl = document.getElementById(`caishen-${index}`);
                 const gangEl = document.getElementById(`gang-${index}`);
                 const winEl = document.getElementById(`win-${index}`);
+                const card = document.querySelector(`.player-card[data-index="${index}"]`);
+                const nameInput = card ? card.querySelector('.player-name') : null;
+                
+                // 更新名字输入框
+                if (nameInput && nameInput.value !== player.name) {
+                    nameInput.value = player.name;
+                }
                 
                 if (scoreEl) {
                     scoreEl.textContent = player.score;
