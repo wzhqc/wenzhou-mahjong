@@ -1791,14 +1791,16 @@
             dealer.winCount++; // 增加胡牌次数
 
             const others = [];
-            gameState.players.forEach((p, i) => {
+            const playerCount = gameState.playerCount;
+            for (let i = 0; i < playerCount; i++) {
+                const p = gameState.players[i];
                 // 排除庄家自己和轮空玩家
                 if (i !== gameState.dealerIndex && isPlayerActive(i)) {
                     const loseScore = hasDouble ? score * 2 : score;
                     p.score -= loseScore;
                     others.push(`${p.name} -${loseScore}`);
                 }
-            });
+            }
 
             const doubleText = hasDouble ? ' (双翻)' : '';
             addRecord(`庄家${dealer.name} ${typeName}${doubleText}: ${dealer.name} +${totalGain}, ${others.join(', ')}`, totalGain);
@@ -1872,14 +1874,16 @@
             dealer.score -= dealerLoss;
 
             const others = [];
-            gameState.players.forEach((p, i) => {
+            const playerCount = gameState.playerCount;
+            for (let i = 0; i < playerCount; i++) {
+                const p = gameState.players[i];
                 // 排除赢家、庄家和轮空玩家
                 if (i !== winnerIndex && i !== gameState.dealerIndex && isPlayerActive(i)) {
                     const loseScore = hasDouble ? scores[2] * 2 : scores[2];
                     p.score -= loseScore;
                     others.push(`${p.name} -${loseScore}`);
                 }
-            });
+            }
 
             const doubleText = hasDouble ? ' (双翻)' : '';
             const othersText = others.length > 0 ? `, ${others.join(', ')}` : '';
