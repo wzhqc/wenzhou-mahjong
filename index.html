@@ -2131,8 +2131,8 @@
             currentMultiplier = 2.5;
             setMultiplier(2.5);
             
-            // 获取所有玩家（5人局显示全部）并排序（按分数从高到低）
-            const displayCount = isFivePlayerMode() ? 5 : getActivePlayerCount();
+            // 获取所有玩家（根据当前人数模式：3人局显示3个，4人局显示4个，5人局显示5个）
+            const displayCount = gameState.playerCount;
             const allPlayers = gameState.players.slice(0, displayCount).map((p, index) => ({
                 ...p,
                 index: index,
