@@ -252,8 +252,15 @@
         .player-card.idle {
             opacity: 0.5;
             filter: grayscale(0.6);
-            pointer-events: none;
             border: 2px solid rgba(100,100,100,0.5);
+        }
+        /* 轮空时禁用按钮但不禁用输入框 */
+        .player-card.idle button {
+            pointer-events: none;
+        }
+        .player-card.idle input.player-name {
+            pointer-events: auto;
+            opacity: 1;
         }
         .idle-badge {
             position: absolute;
