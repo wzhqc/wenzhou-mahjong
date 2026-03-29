@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -916,7 +916,7 @@
                     <button class="btn-caishen" onclick="addCaishenToPlayer(0)">+财神</button>
                     <button class="btn-gang" onclick="addGangToPlayer(0)">+杠牌</button>
                 </div>
-                <button class="btn-zhahu" id="zhahu-0" onclick="showZhaHuDialog(0)">💣 炸胡</button>
+                <button class="btn-zhahu" id="zhahu-0" onclick="showZhaHuDialog(0)">💣 罚分</button>
             </div>
             <div class="player-card" data-index="1">
                 <div class="wind-badge">南</div>
@@ -935,7 +935,7 @@
                     <button class="btn-caishen" onclick="addCaishenToPlayer(1)">+财神</button>
                     <button class="btn-gang" onclick="addGangToPlayer(1)">+杠牌</button>
                 </div>
-                <button class="btn-zhahu" id="zhahu-1" onclick="showZhaHuDialog(1)">💣 炸胡</button>
+                <button class="btn-zhahu" id="zhahu-1" onclick="showZhaHuDialog(1)">💣 罚分</button>
             </div>
             <div class="player-card" data-index="2">
                 <div class="wind-badge">西</div>
@@ -954,7 +954,7 @@
                     <button class="btn-caishen" onclick="addCaishenToPlayer(2)">+财神</button>
                     <button class="btn-gang" onclick="addGangToPlayer(2)">+杠牌</button>
                 </div>
-                <button class="btn-zhahu" id="zhahu-2" onclick="showZhaHuDialog(2)">💣 炸胡</button>
+                <button class="btn-zhahu" id="zhahu-2" onclick="showZhaHuDialog(2)">💣 罚分</button>
             </div>
             <div class="player-card" data-index="3">
                 <div class="wind-badge">北</div>
@@ -973,7 +973,7 @@
                     <button class="btn-caishen" onclick="addCaishenToPlayer(3)">+财神</button>
                     <button class="btn-gang" onclick="addGangToPlayer(3)">+杠牌</button>
                 </div>
-                <button class="btn-zhahu" id="zhahu-3" onclick="showZhaHuDialog(3)">💣 炸胡</button>
+                <button class="btn-zhahu" id="zhahu-3" onclick="showZhaHuDialog(3)">💣 罚分</button>
             </div>
             <div class="player-card" data-index="4" id="playerCard4">
                 <div class="wind-badge">白板</div>
@@ -992,7 +992,7 @@
                     <button class="btn-caishen" onclick="addCaishenToPlayer(4)">+财神</button>
                     <button class="btn-gang" onclick="addGangToPlayer(4)">+杠牌</button>
                 </div>
-                <button class="btn-zhahu" id="zhahu-4" onclick="showZhaHuDialog(4)">💣 炸胡</button>
+                <button class="btn-zhahu" id="zhahu-4" onclick="showZhaHuDialog(4)">💣 罚分</button>
             </div>
         </div>
         
@@ -1095,11 +1095,11 @@
         </div>
     </div>
 
-    <!-- 炸胡弹窗 -->
+    <!-- 罚分弹窗 -->
     <div class="modal-overlay confirm-modal" id="zhaHuModal">
         <div class="modal-content">
             <div class="confirm-icon">💣</div>
-            <div class="confirm-title">炸胡罚分</div>
+            <div class="confirm-title">罚分罚分</div>
             <div class="confirm-message">
                 <div style="margin-bottom: 20px;">请输入罚分倍数 X</div>
                 <input type="number" id="zhaHuInput" min="1" value="1" style="width: 120px; padding: 15px; font-size: 36px; text-align: center; border-radius: 12px; border: 3px solid #ffd700; background: rgba(0,0,0,0.4); color: #fff;">
@@ -1233,14 +1233,14 @@
         // 最大历史记录数
         const MAX_HISTORY = 50;
 
-        // 炸胡相关
+        // 罚分相关
         let pendingZhaHuPlayerIndex = -1;
 
-        // 显示炸胡弹窗
+        // 显示罚分弹窗
         function showZhaHuDialog(playerIndex) {
             // 检查玩家是否轮空（5人局）
             if (!isPlayerActive(playerIndex)) {
-                alert('该玩家本轮轮空，不能炸胡！');
+                alert('该玩家本轮轮空，不能罚分！');
                 return;
             }
             pendingZhaHuPlayerIndex = playerIndex;
@@ -1248,13 +1248,13 @@
             document.getElementById('zhaHuModal').classList.add('active');
         }
 
-        // 关闭炸胡弹窗
+        // 关闭罚分弹窗
         function closeZhaHuModal() {
             document.getElementById('zhaHuModal').classList.remove('active');
             pendingZhaHuPlayerIndex = -1;
         }
 
-        // 确认炸胡罚分
+        // 确认罚分罚分
         function confirmZhaHu() {
             const inputEl = document.getElementById('zhaHuInput');
             let x = parseInt(inputEl.value, 10);
@@ -1287,7 +1287,7 @@
                 }
             });
 
-            addRecord(`💣 ${player.name} 炸胡罚分${x}倍: ${player.name} -${loseScore}, ${others.join(', ')}`, -loseScore);
+            addRecord(`💣 ${player.name} 罚分罚分${x}倍: ${player.name} -${loseScore}, ${others.join(', ')}`, -loseScore);
             updateDisplay();
         }
 
@@ -1428,7 +1428,7 @@
                     if (winButtons) {
                         winButtons.innerHTML = '<button class="btn-win" disabled style="opacity:0.3;cursor:not-allowed;">轮空中</button>';
                     }
-                    // 禁用炸胡按钮
+                    // 禁用罚分按钮
                     const zhahuBtn = document.getElementById(`zhahu-${index}`);
                     if (zhahuBtn) {
                         zhahuBtn.disabled = true;
@@ -1458,11 +1458,11 @@
                         `;
                     }
                 }
-                // 启用炸胡按钮（非轮空玩家）
+                // 启用罚分按钮（非轮空玩家）
                 const zhahuBtn = document.getElementById(`zhahu-${index}`);
                 if (zhahuBtn) {
                     zhahuBtn.disabled = false;
-                    zhahuBtn.textContent = '💣 炸胡';
+                    zhahuBtn.textContent = '💣 罚分';
                 }
                 // 启用输入框（非轮空玩家）
                 const nameInput = card.querySelector('.player-name');
@@ -1984,7 +1984,11 @@
             // 保存当前状态到历史（以便撤销重置）
             saveToHistory();
             
-            gameState.players.forEach(p => {
+            // 重置所有玩家数据，包括恢复默认名字
+            const winds = ['东', '南', '西', '北', '白板'];
+            gameState.players.forEach((p, i) => {
+                p.name = `玩家${i + 1}`;
+                p.wind = winds[i];
                 p.score = 0;
                 p.caishen = 0;
                 p.gang = 0;
@@ -1994,6 +1998,7 @@
             clearSavedState();
             gameState.dealerIndex = 0;
             gameState.consecutiveRounds = 1;
+            gameState.consecutiveDealerWins = 0;
             gameState.records = [];
             gameState.globalDouble = false;
             // 5人局重置时，白板轮空
