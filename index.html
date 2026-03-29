@@ -1641,26 +1641,37 @@
         function executePlayerCountChange(targetCount) {
             saveToHistory();
             
+            // 切换人数时重置所有数据
+            const winds = ['东', '南', '西', '北', '白板'];
+            gameState.players.forEach((p, i) => {
+                p.name = `玩家${i + 1}`;
+                p.wind = winds[i];
+                p.score = 0;
+                p.caishen = 0;
+                p.gang = 0;
+                p.winCount = 0;
+            });
+            
+            gameState.dealerIndex = 0;
+            gameState.consecutiveRounds = 1;
+            gameState.consecutiveDealerWins = 0;
+            gameState.records = [];
+            gameState.globalDouble = false;
+            
             if (targetCount === 3) {
                 gameState.playerCount = 3;
                 gameState.idleIndex = -1;
-                // 如果庄家是第4或5位，强制切换到东风
-                if (gameState.dealerIndex >= 3) {
-                    gameState.dealerIndex = 0;
-                    gameState.consecutiveRounds = 1;
-                }
             } else if (targetCount === 4) {
                 gameState.playerCount = 4;
                 gameState.idleIndex = -1;
             } else if (targetCount === 5) {
                 gameState.playerCount = 5;
-                // 初始轮空：白板（索引4）
                 gameState.idleIndex = 4;
-                // 如果当前庄家是白板，调整到东风
-                if (gameState.dealerIndex === 4) {
-                    gameState.dealerIndex = 0;
-                }
             }
+            
+            // 清除 localStorage 存档
+            clearSavedState();
+            
             addRecord(`切换为${gameState.playerCount}人局`, 0);
             updateDisplay();
         }
