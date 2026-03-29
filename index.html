@@ -2329,17 +2329,12 @@
                 gameState.players[i].winCount = oldData ? oldData.winCount : 0;
             }
             
-            // 设置新庄家为东风位置
-            if (newDealerIndex >= 0) {
-                gameState.dealerIndex = newDealerIndex;
-            } else {
-                // 如果东风位置是新人，设为庄家
-                gameState.dealerIndex = 0;
-            }
+            // 重排后，东风位置成为新庄家
+            gameState.dealerIndex = 0;
             
             // 更新5人局的轮空玩家（庄家的上一个玩家轮空）
             if (isFivePlayerMode()) {
-                gameState.idleIndex = (gameState.dealerIndex + 4) % 5;
+                gameState.idleIndex = 4;
             }
             
             // 重置连庄和连胡
