@@ -1116,20 +1116,21 @@
 
     <!-- 重排弹窗 -->
     <div class="modal-overlay confirm-modal" id="rearrangeModal">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 450px;">
             <div class="confirm-icon">🔄</div>
-            <div class="confirm-title">庄家连胡4把</div>
+            <div class="confirm-title">庄家连胡4把 - 重新排位</div>
             <div class="confirm-message">
                 <div style="margin-bottom: 15px; font-size: 14px; color: rgba(255,255,255,0.8);">
-                    请重新安排位置，分数跟随名字
+                    请在下方输入各位置的新玩家名字<br>
+                    <span style="color: #ffd700;">新东风位置将成为庄家</span>
                 </div>
-                <div id="rearrangeInputs" style="display: flex; flex-direction: column; gap: 12px;">
-                    <!-- 动态生成输入框 -->
+                <div id="rearrangeInputs" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- 动态生成 -->
                 </div>
             </div>
             <div class="confirm-buttons" style="margin-top: 20px;">
                 <button class="btn-cancel" onclick="closeRearrangeModal()">取消</button>
-                <button class="btn-confirm" onclick="confirmRearrange()">确认重排</button>
+                <button class="btn-confirm" onclick="confirmRearrange()">确认排位</button>
             </div>
         </div>
     </div>
@@ -2219,14 +2220,23 @@
             for (let i = 0; i < totalCount; i++) {
                 const player = gameState.players[i];
                 const scoreText = player.score >= 0 ? `+${player.score}` : player.score;
+                const isDealer = i === gameState.dealerIndex;
+                const dealerMark = isDealer ? ' <span style="color:#ffd700;">(庄)</span>' : '';
                 
                 const row = document.createElement('div');
-                row.style.cssText = 'display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 10px; flex-wrap: wrap;';
+                row.style.cssText = 'background: rgba(0,0,0,0.25); padding: 12px 15px; border-radius: 10px; border-left: 4px solid ' + (isDealer ? '#ffd700' : 'rgba(255,255,255,0.2)') + ';';
                 row.innerHTML = `
-                    <span style="width: 50px; font-weight: bold; color: #ffd700;">${winds[i]}风</span>
-                    <input type="text" id="rearrangeName${i}" value="${player.name}" 
-                           style="flex: 1; min-width: 100px; padding: 10px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: #fff;">
-                    <span style="width: 60px; text-align: right; font-size: 14px; color: ${player.score >= 0 ? '#4ade80' : '#f87171'};">${scoreText}</span>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <span style="width: 45px; font-weight: bold; color: #ffd700;">${winds[i]}风</span>
+                        <input type="text" id="rearrangeName${i}" value="${player.name}" 
+                               style="flex: 1; padding: 8px 12px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.4); color: #fff;">
+                    </div>
+                    <div style="display: flex; gap: 15px; font-size: 13px; color: rgba(255,255,255,0.7); padding-left: 55px;">
+                        <span style="color: ${player.score >= 0 ? '#4ade80' : '#f87171'};">分数: ${scoreText}</span>
+                        <span>财神: ${player.caishen}</span>
+                        <span>杠牌: ${player.gang}</span>
+                        <span>胡牌: ${player.winCount}</span>
+                    </div>
                 `;
                 inputsContainer.appendChild(row);
             }
@@ -2247,40 +2257,64 @@
             
             // 显示所有玩家位置
             const totalCount = isThreePlayerMode() ? 3 : (isFivePlayerMode() ? 5 : 4);
+            const winds = ['东', '南', '西', '北', '白板'];
             
-            // 收集旧玩家的所有数据（分数、财神、杠牌、胡牌）
+            // 收集旧玩家的所有数据
             const oldPlayersData = {};
-            gameState.players.forEach((p, i) => {
-                if (i < totalCount) {
-                    oldPlayersData[p.name] = {
-                        score: p.score,
-                        caishen: p.caishen,
-                        gang: p.gang,
-                        winCount: p.winCount
-                    };
-                }
-            });
+            for (let i = 0; i < totalCount; i++) {
+                const p = gameState.players[i];
+                oldPlayersData[p.name] = {
+                    score: p.score,
+                    caishen: p.caishen,
+                    gang: p.gang,
+                    winCount: p.winCount,
+                    wind: p.wind
+                };
+            }
             
-            // 获取新名字并更新所有数据
+            // 记录新位置的玩家名字
+            const newPlayers = [];
             for (let i = 0; i < totalCount; i++) {
                 const newNameInput = document.getElementById(`rearrangeName${i}`);
                 const newName = newNameInput.value.trim() || `玩家${i + 1}`;
-                
-                // 如果旧数据中有这个名字，使用旧数据；否则使用0
+                newPlayers.push(newName);
+            }
+            
+            // 找出新东风位置的玩家索引（将成为新庄家）
+            const newDealerIndex = newPlayers.findIndex(name => name === gameState.players[gameState.dealerIndex].name);
+            
+            // 更新各位置的数据
+            for (let i = 0; i < totalCount; i++) {
+                const newName = newPlayers[i];
                 const oldData = oldPlayersData[newName];
                 
                 gameState.players[i].name = newName;
+                gameState.players[i].wind = winds[i];
                 gameState.players[i].score = oldData ? oldData.score : 0;
                 gameState.players[i].caishen = oldData ? oldData.caishen : 0;
                 gameState.players[i].gang = oldData ? oldData.gang : 0;
                 gameState.players[i].winCount = oldData ? oldData.winCount : 0;
             }
             
+            // 设置新庄家为东风位置
+            if (newDealerIndex >= 0) {
+                gameState.dealerIndex = newDealerIndex;
+            } else {
+                // 如果东风位置是新人，设为庄家
+                gameState.dealerIndex = 0;
+            }
+            
+            // 更新5人局的轮空玩家（庄家的上一个玩家轮空）
+            if (isFivePlayerMode()) {
+                gameState.idleIndex = (gameState.dealerIndex + 4) % 5;
+            }
+            
             // 重置连庄和连胡
             gameState.consecutiveRounds = 1;
             gameState.consecutiveDealerWins = 0;
             
-            addRecord('庄家连胡4把，重新安排位置', 0);
+            const newDealer = gameState.players[gameState.dealerIndex];
+            addRecord(`庄家连胡4把重新排位，新庄家：${newDealer.name}(${newDealer.wind}风)`, 0);
             
             closeRearrangeModal();
             updateDisplay();
