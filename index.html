@@ -894,6 +894,10 @@
                 <span class="label">连胡</span>
                 <span class="value" id="consecutiveWins">0</span>
             </div>
+            <div class="info-item">
+                <span class="label">总坐庄</span>
+                <span class="value" id="totalDealerCount">0</span>
+            </div>
         </div>
         
         <!-- 玩家区域 -->
@@ -1149,6 +1153,7 @@
             idleIndex: 4,         // 轮空玩家索引，默认白板（索引4）轮空
             consecutiveRounds: 1,
             consecutiveDealerWins: 0,  // 庄家连胡计数
+            totalDealerCount: 0,       // 总坐庄数
             records: [],
             globalDouble: false,  // 全局双翻状态
             playerCount: 5        // 当前局人数：3、4 或 5，默认5人局
@@ -1376,6 +1381,12 @@
             const consecutiveWinsEl = document.getElementById('consecutiveWins');
             if (consecutiveWinsEl) {
                 consecutiveWinsEl.textContent = gameState.consecutiveDealerWins;
+            }
+            
+            // 更新总坐庄数
+            const totalDealerCountEl = document.getElementById('totalDealerCount');
+            if (totalDealerCountEl) {
+                totalDealerCountEl.textContent = gameState.totalDealerCount;
             }
             
             // 更新当前庄家标签
@@ -1655,6 +1666,7 @@
             gameState.dealerIndex = 0;
             gameState.consecutiveRounds = 1;
             gameState.consecutiveDealerWins = 0;
+            gameState.totalDealerCount = 0;
             gameState.records = [];
             gameState.globalDouble = false;
             
@@ -1845,6 +1857,7 @@
             // 检查庄家连胡是否达到4次
             if (gameState.consecutiveDealerWins >= 4) {
                 gameState.consecutiveDealerWins = 0;
+                rearrangeReason = 'consecutiveWin';
                 // 延迟显示重排弹窗，让用户先看到胡牌记录
                 setTimeout(() => {
                     showRearrangeModal();
@@ -1914,6 +1927,9 @@
             // 庄家连胡清零（闲家胡牌）
             gameState.consecutiveDealerWins = 0;
             
+            // 总坐庄数 +1
+            gameState.totalDealerCount++;
+            
             // 5人局：庄家下庄后，新庄家的上一个玩家轮空
             if (isFivePlayerMode()) {
                 gameState.dealerIndex = (gameState.dealerIndex + 1) % 5;
@@ -1921,6 +1937,9 @@
             } else {
                 gameState.dealerIndex = (gameState.dealerIndex + 1) % activeCount;
             }
+
+            // 检查总坐庄数是否达到触发重排
+            checkTotalDealerCount();
 
             updateDisplay();
         }
@@ -1968,6 +1987,9 @@
             // 庄家连胡清零（流牌）
             gameState.consecutiveDealerWins = 0;
             
+            // 总坐庄数 +1
+            gameState.totalDealerCount++;
+            
             const activeCount = getActivePlayerCount();
             
             // 5人局：庄家下庄后，新庄家的上一个玩家轮空
@@ -1982,6 +2004,9 @@
             
             const newDealer = gameState.players[gameState.dealerIndex].name;
             addRecord(`流牌：${oldDealer}下庄，${newDealer}成为新庄家`, 0);
+            
+            // 检查总坐庄数是否达到触发重排
+            checkTotalDealerCount();
             
             updateDisplay();
         }
@@ -2020,6 +2045,7 @@
             gameState.dealerIndex = 0;
             gameState.consecutiveRounds = 1;
             gameState.consecutiveDealerWins = 0;
+            gameState.totalDealerCount = 0;
             gameState.records = [];
             gameState.globalDouble = false;
             // 5人局重置时，白板轮空
@@ -2236,12 +2262,41 @@
             }
         });
 
+        // ========== 总坐庄数检查 ==========
+        
+        // 当前重排触发原因
+        let rearrangeReason = '';
+        
+        // 检查总坐庄数是否达到触发重排
+        function checkTotalDealerCount() {
+            if (isThreePlayerMode()) return; // 3人局不触发
+            
+            const triggerCount = isFivePlayerMode() ? 20 : 16;
+            
+            if (gameState.totalDealerCount >= triggerCount) {
+                gameState.totalDealerCount = 0;
+                gameState.consecutiveDealerWins = 0;
+                rearrangeReason = 'totalDealer';
+                setTimeout(() => {
+                    showRearrangeModal();
+                }, 500);
+            }
+        }
+
         // ========== 重排功能 ==========
         
         // 显示重排弹窗
         function showRearrangeModal() {
             const modal = document.getElementById('rearrangeModal');
             const inputsContainer = document.getElementById('rearrangeInputs');
+            
+            // 更新弹窗标题
+            const titleEl = modal.querySelector('.confirm-title');
+            if (rearrangeReason === 'totalDealer') {
+                if (titleEl) titleEl.textContent = '坐庄轮次已满 - 重新排位';
+            } else {
+                if (titleEl) titleEl.textContent = '庄家连胡4把 - 重新排位';
+            }
             
             // 清空并生成输入框
             inputsContainer.innerHTML = '';
@@ -2340,9 +2395,11 @@
             // 重置连庄和连胡
             gameState.consecutiveRounds = 1;
             gameState.consecutiveDealerWins = 0;
+            gameState.totalDealerCount = 0;
             
             const newDealer = gameState.players[gameState.dealerIndex];
-            addRecord(`庄家连胡4把重新排位，新庄家：${newDealer.name}(${newDealer.wind}风)`, 0);
+            const reasonText = rearrangeReason === 'totalDealer' ? '坐庄轮次已满' : '庄家连胡4把';
+            addRecord(`${reasonText}重新排位，新庄家：${newDealer.name}(${newDealer.wind}风)`, 0);
             
             closeRearrangeModal();
             updateDisplay();
