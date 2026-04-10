@@ -1119,7 +1119,6 @@
                     <button id="playerCountBtn" class="secondary" onclick="showPlayerCountSelector()">5人局</button>
                     <button class="secondary" onclick="nextRound()">流牌（庄家下庄）</button>
                     <button class="btn-double-mini" id="globalDoubleBtn" onclick="toggleGlobalDouble()">开启双翻</button>
-                    <button class="secondary" onclick="resetGame()">重置牌局</button>
                 </div>
             </div>
             <div class="action-card">
@@ -1184,19 +1183,6 @@
             <div class="confirm-buttons" style="margin-top: 18px;">
                 <button class="btn-cancel" onclick="closeClubOwnerSettleModal()">取消</button>
                 <button class="btn-confirm" id="clubOwnerSettleConfirmBtn" onclick="confirmClubOwnerSettlement()" style="background: linear-gradient(135deg, #e67e22, #d35400); opacity: 0.4; cursor: not-allowed;">确认</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 确认弹窗 -->
-    <div class="modal-overlay confirm-modal" id="confirmModal">
-        <div class="modal-content">
-            <div class="confirm-icon">⚠️</div>
-            <div class="confirm-title">确认重置牌局</div>
-            <div class="confirm-message">确定要重置牌局吗？<br>所有分数、财神、杠牌、胡牌次数将被清空！</div>
-            <div class="confirm-buttons">
-                <button class="btn-cancel" onclick="closeConfirmModal()">取消</button>
-                <button class="btn-confirm" onclick="executeReset()">确认重置</button>
             </div>
         </div>
     </div>
@@ -2554,59 +2540,6 @@
             updateDisplay();
         }
 
-        // 重置游戏 - 进入姓名输入流程
-        function resetGame() {
-            // 进入姓名输入流程（当前人数）
-            pendingPlayerCount = gameState.playerCount;
-            showNameInputModal(gameState.playerCount);
-        }
-
-        // 关闭确认弹窗
-        function closeConfirmModal() {
-            const modal = document.getElementById('confirmModal');
-            modal.classList.remove('active');
-        }
-
-        // 执行重置
-        function executeReset() {
-            closeConfirmModal();
-
-            // 保存当前状态到历史（以便撤销重置）
-            saveToHistory();
-
-            // 重置所有玩家数据，包括恢复默认名字
-            const winds = ['东', '南', '西', '北', '白板'];
-            gameState.players.forEach((p, i) => {
-                p.name = `玩家${i + 1}`;
-                p.wind = winds[i];
-                p.score = 0;
-                p.caishen = 0;
-                p.gang = 0;
-                p.winCount = 0;
-            });
-
-            // 重置棋牌室老板分数
-            clubOwner.score = 0;
-
-            // 清除 localStorage 存档
-            clearSavedState();
-            gameState.dealerIndex = 0;
-            gameState.consecutiveRounds = 1;
-            gameState.consecutiveDealerWins = 0;
-            gameState.totalDealerCount = 0;
-            gameState.records = [];
-            gameState.globalDouble = false;
-            // 5人局重置时，白板轮空
-            if (isFivePlayerMode()) {
-                gameState.idleIndex = 4;
-            } else {
-                gameState.idleIndex = -1;
-            }
-            // playerCount 保留，重置后维持当前人数模式
-
-            updateDisplay();
-        }
-
         // 返回上一步
         function undoLast() {
             if (historyStack.length === 0) {
@@ -2925,13 +2858,6 @@
         document.getElementById('resultModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeResultModal();
-            }
-        });
-
-        // 点击确认弹窗外部关闭
-        document.getElementById('confirmModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeConfirmModal();
             }
         });
 
