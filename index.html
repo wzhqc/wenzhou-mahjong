@@ -27,7 +27,7 @@
             min-height: 100vh;
             color: #fff;
             padding: 20px;
-            padding-bottom: 220px;
+            padding-bottom: 20px;
             position: relative;
         }
         /* 麻将桌纹理 */
@@ -507,7 +507,7 @@
         /* 移动端底部面板 padding */
         @media (max-width: 768px) {
             body {
-                padding-bottom: 200px;
+                padding-bottom: 20px;
             }
         }
 
@@ -709,7 +709,7 @@
         @media (max-width: 768px) {
             body {
                 padding: 12px;
-                padding-bottom: 200px;
+                padding-bottom: 20px;
             }
             .players-section {
                 -webkit-grid-template-columns: repeat(2, 1fr);
@@ -962,6 +962,58 @@
         .btn-confirm:hover {
             box-shadow: 0 6px 25px rgba(231,76,60,0.6);
         }
+        /* 卡片内操作按钮 */
+        .card-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .card-btn-row {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+        .card-btn {
+            flex: 1;
+            padding: 8px 4px;
+            font-size: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.15s;
+            color: #fff;
+            min-width: 0;
+        }
+        .card-btn:active {
+            transform: scale(0.95);
+        }
+        .card-btn.btn-win {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        .card-btn.btn-caishen {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        .card-btn.btn-gang {
+            background: linear-gradient(135deg, #2980b9, #1a6fa0);
+        }
+        .card-btn.btn-zhahu {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+        }
+        .card-btn.btn-contribution {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+        }
+        .card-btn.btn-cooldown {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        /* 轮空玩家隐藏按钮 */
+        .player-card.idle .card-buttons {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -1001,56 +1053,61 @@
 
         <!-- 玩家区域 -->
         <div class="players-section" id="playersSection">
-            <div class="player-card dealer" data-index="0" onclick="selectPlayer(0)">
+            <div class="player-card dealer" data-index="0">
                 <span class="dealer-badge">庄</span>
                 <div class="wind-badge">东</div>
-                <input type="text" class="player-name" value="玩家1" placeholder="输入名字" onclick="event.stopPropagation()">
+                <input type="text" class="player-name" value="玩家1" placeholder="输入名字">
                 <div class="score" id="score-0">0</div>
                 <div class="stats">
                     财神: <span id="caishen-0">0</span> |
                     杠牌: <span id="gang-0">0</span> |
                     胡牌: <span id="win-0">0</span>
                 </div>
+                <div class="card-buttons" id="cardButtons-0"></div>
             </div>
-            <div class="player-card" data-index="1" onclick="selectPlayer(1)">
+            <div class="player-card" data-index="1">
                 <div class="wind-badge">南</div>
-                <input type="text" class="player-name" value="玩家2" placeholder="输入名字" onclick="event.stopPropagation()">
+                <input type="text" class="player-name" value="玩家2" placeholder="输入名字">
                 <div class="score" id="score-1">0</div>
                 <div class="stats">
                     财神: <span id="caishen-1">0</span> |
                     杠牌: <span id="gang-1">0</span> |
                     胡牌: <span id="win-1">0</span>
                 </div>
+                <div class="card-buttons" id="cardButtons-1"></div>
             </div>
-            <div class="player-card" data-index="2" onclick="selectPlayer(2)">
+            <div class="player-card" data-index="2">
                 <div class="wind-badge">西</div>
-                <input type="text" class="player-name" value="玩家3" placeholder="输入名字" onclick="event.stopPropagation()">
+                <input type="text" class="player-name" value="玩家3" placeholder="输入名字">
                 <div class="score" id="score-2">0</div>
                 <div class="stats">
                     财神: <span id="caishen-2">0</span> |
                     杠牌: <span id="gang-2">0</span> |
                     胡牌: <span id="win-2">0</span>
                 </div>
+                <div class="card-buttons" id="cardButtons-2"></div>
             </div>
-            <div class="player-card" data-index="3" onclick="selectPlayer(3)">
+            <div class="player-card" data-index="3">
                 <div class="wind-badge">北</div>
-                <input type="text" class="player-name" value="玩家4" placeholder="输入名字" onclick="event.stopPropagation()">
+                <input type="text" class="player-name" value="玩家4" placeholder="输入名字">
                 <div class="score" id="score-3">0</div>
                 <div class="stats">
                     财神: <span id="caishen-3">0</span> |
                     杠牌: <span id="gang-3">0</span> |
                     胡牌: <span id="win-3">0</span>
                 </div>
+                <div class="card-buttons" id="cardButtons-3"></div>
             </div>
-            <div class="player-card" data-index="4" id="playerCard4" onclick="selectPlayer(4)">
+            <div class="player-card" data-index="4" id="playerCard4">
                 <div class="wind-badge">白板</div>
-                <input type="text" class="player-name" value="玩家5" placeholder="输入名字" onclick="event.stopPropagation()">
+                <input type="text" class="player-name" value="玩家5" placeholder="输入名字">
                 <div class="score" id="score-4">0</div>
                 <div class="stats">
                     财神: <span id="caishen-4">0</span> |
                     杠牌: <span id="gang-4">0</span> |
                     胡牌: <span id="win-4">0</span>
                 </div>
+                <div class="card-buttons" id="cardButtons-4"></div>
             </div>
         </div>
 
@@ -1085,16 +1142,6 @@
             <div id="recordsList"></div>
         </div>
 
-        <!-- 底部操作面板 - 手机友好 -->
-        <div class="bottom-action-panel" id="bottomActionPanel">
-            <div class="panel-header">
-                <span id="panelPlayerName">请选择一个玩家</span>
-                <button class="panel-close" onclick="deselectPlayer()">✕</button>
-            </div>
-            <div class="panel-buttons" id="panelButtons">
-                <div class="panel-placeholder">👆 点击上方玩家卡片</div>
-            </div>
-        </div>
     </div>
 
     <!-- 结算弹窗 -->
@@ -1248,8 +1295,8 @@
 
         function cooldownAllActionButtons() {
             isCooldownActive = true;
-            // 获取底部面板的操作按钮，添加冷却样式
-            const buttons = document.querySelectorAll('.panel-btn');
+            // 获取所有卡片内操作按钮，添加冷却样式
+            const buttons = document.querySelectorAll('.card-btn');
             buttons.forEach(btn => btn.classList.add('btn-cooldown'));
             // 冷却结束后，重新从 DOM 查询按钮并移除冷却
             setTimeout(() => {
@@ -1594,6 +1641,80 @@
             // 界面已改为直接在玩家卡片上操作，此函数保留用于兼容性
         }
 
+        // 更新单个玩家卡片内的操作按钮
+        function updateCardButtons(index) {
+            const container = document.getElementById(`cardButtons-${index}`);
+            if (!container) return;
+
+            // 轮空玩家不显示按钮
+            if (!isPlayerActive(index)) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const isDealer = index === gameState.dealerIndex;
+
+            let html = '';
+
+            // 第一行：胡牌按钮（庄家/闲家不同）
+            html += '<div class="card-btn-row">';
+            if (isDealer) {
+                html += `<button class="card-btn btn-win" onclick="dealerWin('hard')">硬胡</button>`;
+                html += `<button class="card-btn btn-win" onclick="dealerWin('soft')">软胡</button>`;
+            } else {
+                html += `<button class="card-btn btn-win" onclick="playerWinByIndex(${index},'hard')">硬胡</button>`;
+                html += `<button class="card-btn btn-win" onclick="playerWinByIndex(${index},'soft')">软胡</button>`;
+            }
+            html += '</div>';
+
+            // 第二行：财神、杠牌
+            html += '<div class="card-btn-row">';
+            html += `<button class="card-btn btn-caishen" onclick="addCaishenToPlayer(${index})">财神</button>`;
+            html += `<button class="card-btn btn-gang" onclick="addGangToPlayer(${index})">杠牌</button>`;
+            html += '</div>';
+
+            // 第三行：罚分 + 棋牌室贡献（4/5人局才显示贡献）
+            html += '<div class="card-btn-row">';
+            html += `<button class="card-btn btn-zhahu" onclick="showZhaHuDialog(${index})">罚分</button>`;
+            if (gameState.playerCount >= 4) {
+                html += `<button class="card-btn btn-contribution" onclick="addClubContributionByIndex(${index})">棋牌室</button>`;
+            }
+            html += '</div>';
+
+            container.innerHTML = html;
+
+            // 如果当前处于冷却状态，应用冷却样式
+            if (isCooldownActive) {
+                container.querySelectorAll('.card-btn').forEach(btn => btn.classList.add('btn-cooldown'));
+            }
+        }
+
+        // 更新所有玩家卡片按钮
+        function updateAllCardButtons() {
+            for (let i = 0; i < 5; i++) {
+                updateCardButtons(i);
+            }
+        }
+
+        // 棋牌室贡献（直接传入玩家索引，不依赖 selectedPlayerIndex）
+        function addClubContributionByIndex(playerIndex) {
+            if (!isPlayerActive(playerIndex)) return;
+            if (gameState.playerCount < 4) return;
+            if (isCooldownActive) return;
+
+            const player = gameState.players[playerIndex];
+            cooldownAllActionButtons();
+            saveToHistory();
+
+            player.score -= 1;
+            clubOwner.score += 1;
+
+            triggerScoreBounce(playerIndex);
+            animateClubOwnerScore();
+            addRecord(`🏠 ${player.name} 贡献 1 分给棋牌室老板`, -1);
+            updateDisplay();
+        }
+
         // 更新显示
         function updateDisplay() {
             const isThreeMode = isThreePlayerMode();
@@ -1729,8 +1850,8 @@
                 }
             }
 
-            // 更新底部操作面板
-            updateActionPanel();
+            // 更新卡片内操作按钮
+            updateAllCardButtons();
 
             // 更新下拉选择框
             updateSelectOptions();
@@ -1816,6 +1937,13 @@
             gameState.globalDouble = state.globalDouble;
             gameState.playerCount = state.playerCount;
             clubOwner = state.clubOwner ? { ...state.clubOwner } : { name: '棋牌室老板', score: 0 };
+
+            // 用实际连胡次数重新推算"第几把"，保证两个计数器始终同步
+            if (gameState.consecutiveDealerWins > 0) {
+                gameState.consecutiveRounds = Math.min(gameState.consecutiveDealerWins + 1, 4);
+            } else {
+                gameState.consecutiveRounds = 1;
+            }
         }
 
         // 保存当前状态到历史记录
@@ -2662,13 +2790,14 @@
             if (selectedClubOwnerIndex < 0) return;
 
             const player = gameState.players[selectedClubOwnerIndex];
+            const addedScore = clubOwner.score; // 分配前先保存
 
             // 把棋牌室老板积分加到对应玩家
             player.score += clubOwner.score;
             clubOwner.score = 0; // 用完了，清零
 
-            // 记录到操作记录
-            addRecord(`🏠 棋牌室老板(${player.name}) 获得 ${player.score > 0 ? '+' : ''}${player.score} 积分（已结算）`, 0);
+            // 记录到操作记录（显示本次分配的积分，不是玩家总分）
+            addRecord(`🏠 棋牌室老板(${player.name}) 获得 +${addedScore} 积分（已结算）`, addedScore);
 
             // 更新显示
             updateDisplay();
@@ -2948,7 +3077,6 @@
             closeRearrangeModal();
             updateDisplay();
         }
-
         // 注册 Service Worker（PWA 离线支持）
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
