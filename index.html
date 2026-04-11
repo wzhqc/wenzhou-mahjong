@@ -198,39 +198,39 @@
 
         /* ====== 四个玩家卡片的精确坐标 ====== */
         /* 桌面尺寸：660×480  中心面板：200×140，位于(230,170) */
-        /* 北卡（玩家4）- top:0，左50%居中，宽200，高130 */
+        /* 北卡（玩家4）- top:0，左50%居中，宽200，高150 */
         .top-edge {
             position: absolute;
             top: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 200px;
-            height: 130px;
+            height: 150px;
         }
-        /* 南卡（玩家2）- bottom:0，左50%居中，宽200，高140 */
+        /* 南卡（玩家2）- bottom:0，左50%居中，宽200，高160 */
         .bottom-edge {
             position: absolute;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 200px;
-            height: 140px;
+            height: 160px;
         }
-        /* 西卡（玩家3）- left:0，顶边对齐中心，宽115，高170 */
+        /* 西卡（玩家3）- left:0，顶边对齐中心，宽115，高180 */
         .left-edge {
             position: absolute;
             left: 0;
-            top: 160px;
+            top: 150px;
             width: 115px;
-            height: 170px;
+            height: 180px;
         }
-        /* 东卡（玩家1）- right:0，顶边对齐中心，宽115，高170 */
+        /* 东卡（玩家1）- right:0，顶边对齐中心，宽115，高180 */
         .right-edge {
             position: absolute;
             right: 0;
-            top: 160px;
+            top: 150px;
             width: 115px;
-            height: 170px;
+            height: 180px;
         }
 
         /* ====== 白板区域：桌外右下 ====== */
@@ -404,10 +404,10 @@
                 height: 72vw;
             }
             /* 缩小比例：原桌面660×480 → 缩小到98vw × 72vw */
-            .top-edge { width: 28vw; height: 19vw; }
-            .bottom-edge { width: 28vw; height: 20vw; }
-            .left-edge { width: 16vw; height: 24vw; left: 0; top: 23vw; }
-            .right-edge { width: 16vw; height: 24vw; right: 0; top: 23vw; }
+            .top-edge { width: 28vw; height: 22vw; }
+            .bottom-edge { width: 28vw; height: 24vw; }
+            .left-edge { width: 16vw; height: 27vw; left: 0; top: 22.5vw; }
+            .right-edge { width: 16vw; height: 27vw; right: 0; top: 22.5vw; }
             #center-info { top: 25vw; left: 34vw; width: 30vw; height: 21vw; }
             .score { font-size: 18px; }
             .wind-badge { font-size: 16px; }
