@@ -184,23 +184,28 @@
         }
 
         /* ======= 牌桌布局 ======= */
+        /* 整体包装：牌桌+上下延伸区域，阻止子元素溢出页面 */
+        .table-wrapper {
+            position: relative;
+            width: min(90vw, 700px);
+            margin: 0 auto 20px;
+        }
+        /* 桌子本体 */
         #mahjongTable {
             position: relative;
             width: min(90vw, 700px);
-            height: min(80vw, 560px);
-            margin: 0 auto 20px;
-            /* 桌子背景 */
-            background:
-                radial-gradient(ellipse at center, rgba(20,60,30,0.9) 0%, rgba(10,35,15,0.95) 100%);
-            border: 3px solid rgba(255,215,0,0.3);
+            height: min(70vw, 560px);
             border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(20,60,30,0.9) 0%, rgba(10,35,15,0.95) 100%);
+            border: 3px solid rgba(255,215,0,0.3);
             box-shadow:
                 0 0 60px rgba(0,0,0,0.6),
                 inset 0 0 80px rgba(0,80,40,0.3),
                 0 0 0 8px rgba(139,90,43,0.6),
                 0 0 0 12px rgba(0,0,0,0.3);
+            overflow: visible;
         }
-        /* 牌桌纹理 */
+        /* 桌子纹理 */
         #mahjongTable::before {
             content: '';
             position: absolute;
@@ -211,51 +216,52 @@
             pointer-events: none;
         }
 
-        /* 四边定位 */
+        /* ====== 四个方向卡片的"停泊位" ====== */
+        /* 停泊位在桌子边缘上，卡片叠在停泊位上方 */
         .table-edge {
             position: absolute;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             z-index: 2;
         }
+        /* 北：顶部边缘，水平 */
         .top-edge {
-            top: -75px;
+            top: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 100%;
+            width: min(60%, 420px);
         }
+        /* 南：底部边缘，水平 */
         .bottom-edge {
-            bottom: -75px;
+            bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 100%;
+            width: min(60%, 420px);
         }
+        /* 西：左侧边缘，垂直 */
         .left-edge {
-            left: -70px;
+            left: 0;
             top: 50%;
             transform: translateY(-50%);
-            height: 100%;
+            height: min(55%, 310px);
         }
+        /* 东：右侧边缘，垂直 */
         .right-edge {
-            right: -70px;
+            right: 0;
             top: 50%;
             transform: translateY(-50%);
-            height: 100%;
+            height: min(55%, 310px);
         }
 
-        /* 白板区域 - 顶部上方 */
+        /* ====== 白板区域：牌桌右下方外侧 ====== */
         .baiban-area {
             position: absolute;
-            top: -165px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: -90px;
+            right: 0;
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             z-index: 3;
         }
 
-        /* ======= 水平卡片（南北方向） ======= */
+        /* ====== 水平卡片（南北用） ====== */
         .player-card-h {
             background: linear-gradient(145deg, #2a5a3a 0%, #1e4d2e 50%, #153825 100%);
             border-radius: 14px;
@@ -266,8 +272,9 @@
             position: relative;
             box-shadow: 0 6px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
             cursor: pointer;
-            min-width: 150px;
+            width: 100%;
             max-width: 200px;
+            display: inline-block;
         }
         .player-card-h:hover {
             transform: translateY(-3px);
@@ -290,24 +297,24 @@
         .player-card-h.idle button { pointer-events: none; }
         .player-card-h.idle input.player-name { pointer-events: auto; }
 
-        /* ======= 垂直卡片（东西方向） ======= */
+        /* ====== 垂直卡片（东西用） ====== */
         .player-card-v {
             background: linear-gradient(145deg, #2a5a3a 0%, #1e4d2e 50%, #153825 100%);
             border-radius: 14px;
-            padding: 12px 8px;
+            padding: 10px 8px;
             text-align: center;
             border: 2px solid rgba(255,255,255,0.12);
             transition: all 0.3s ease;
             position: relative;
             box-shadow: 0 6px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
             cursor: pointer;
-            min-height: 180px;
-            width: 100px;
+            width: 105px;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
         }
         .player-card-v:hover {
             transform: scale(1.05);
@@ -330,7 +337,7 @@
         .player-card-v.idle button { pointer-events: none; }
         .player-card-v.idle input.player-name { pointer-events: auto; }
 
-        /* ======= 庄家徽章 ======= */
+        /* ====== 庄家徽章 ====== */
         .dealer-badge {
             position: absolute;
             top: -8px;
@@ -345,13 +352,13 @@
             box-shadow: 0 3px 10px rgba(255,215,0,0.5);
             z-index: 10;
         }
-        /* ======= 风位 ======= */
+        /* ====== 风位 ====== */
         .wind-badge {
             font-size: 22px;
             font-weight: 900;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        /* ======= 玩家名字 ======= */
+        /* ====== 玩家名字 ====== */
         .player-name {
             width: 100%;
             background: rgba(0,0,0,0.3);
@@ -365,27 +372,25 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        .player-name:focus {
-            border-color: rgba(255,215,0,0.6);
-        }
-        /* ======= 分数 ======= */
+        .player-name:focus { border-color: rgba(255,215,0,0.6); }
+        /* ====== 分数 ====== */
         .score {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 900;
             color: #fff;
             text-shadow: 0 2px 6px rgba(0,0,0,0.5);
-            margin: 4px 0 2px;
+            margin: 3px 0 1px;
         }
         .score.positive { color: #00ff88; }
         .score.negative { color: #ff4444; }
-        /* ======= 统计 ======= */
+        /* ====== 统计 ====== */
         .stats {
             font-size: 10px;
             color: rgba(255,255,255,0.6);
             line-height: 1.4;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
-        /* ======= 轮空标记 ======= */
+        /* ====== 轮空标记 ====== */
         .idle-badge {
             position: absolute;
             top: -8px;
@@ -401,7 +406,7 @@
             z-index: 10;
             white-space: nowrap;
         }
-        /* ======= 赢家动画 ======= */
+        /* ====== 赢家动画 ====== */
         .player-card-h.winner, .player-card-v.winner {
             border-color: #00ff88;
             animation: winPulse 0.5s ease-out;
@@ -412,7 +417,7 @@
             100% { transform: scale(1); }
         }
 
-        /* ======= 中央信息面板 ======= */
+        /* ====== 中央信息面板 ====== */
         #center-info {
             position: absolute;
             top: 50%;
@@ -421,8 +426,10 @@
             background: radial-gradient(ellipse at center, rgba(30,80,50,0.95) 0%, rgba(15,50,25,0.95) 100%);
             border: 2px solid rgba(255,215,0,0.25);
             border-radius: 50%;
-            width: min(200px, 40%);
-            height: min(200px, 40%);
+            width: min(180px, 38%);
+            height: min(180px, 38%);
+            min-width: 130px;
+            min-height: 130px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -432,11 +439,11 @@
                 0 0 30px rgba(0,0,0,0.5),
                 inset 0 0 30px rgba(0,0,0,0.3),
                 0 0 0 4px rgba(139,90,43,0.4);
-            padding: 10px;
+            padding: 8px;
         }
         .center-wind {
-            font-size: 28px;
-            margin-bottom: 2px;
+            font-size: 26px;
+            margin-bottom: 3px;
             filter: drop-shadow(0 0 8px rgba(255,215,0,0.6));
         }
         .center-dealer-name {
@@ -452,68 +459,59 @@
             white-space: nowrap;
         }
         .center-round {
-            font-size: 11px;
-            color: rgba(255,215,0,0.85);
+            font-size: 12px;
+            color: rgba(255,215,0,0.9);
             font-weight: bold;
             letter-spacing: 1px;
         }
         .center-extra {
-            font-size: 10px;
-            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+            text-align: center;
+        }
+        .center-idle-hint {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
             margin-top: 2px;
         }
 
         /* ======= 响应式 ======= */
         @media (max-width: 600px) {
             #mahjongTable {
-                width: 95vw;
-                height: 76vw;
+                width: 98vw;
+                height: 78vw;
             }
+            .top-edge { width: 90%; }
+            .bottom-edge { width: 90%; }
+            .left-edge { width: 80px; }
+            .right-edge { width: 80px; }
             .player-card-h {
-                min-width: 120px;
                 max-width: 160px;
                 padding: 8px 12px 6px;
             }
             .player-card-v {
-                min-height: 140px;
-                width: 80px;
+                width: 82px;
             }
             .score { font-size: 20px; }
             .wind-badge { font-size: 18px; }
             .stats { font-size: 9px; }
             .player-name { font-size: 11px; }
-            .left-edge { left: -55px; }
-            .right-edge { right: -55px; }
-            .player-card-v { width: 78px; min-height: 140px; }
-            .top-edge { top: -65px; }
-            .bottom-edge { bottom: -65px; }
-            .baiban-area { top: -145px; }
             #center-info {
-                width: min(140px, 35%);
-                height: min(140px, 35%);
+                width: min(140px, 40%);
+                height: min(140px, 40%);
+                min-width: 100px;
+                min-height: 100px;
             }
             .center-wind { font-size: 22px; }
             .center-dealer-name { font-size: 12px; }
-            .center-round { font-size: 10px; }
+            .center-round { font-size: 11px; }
+            .baiban-area { bottom: -85px; }
         }
-
-        /* 风位显示 */
-        .wind-badge {
-            font-size: 26px;
-            margin-bottom: 6px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            font-weight: 900;
+        @media (max-width: 400px) {
+            .player-card-h { max-width: 130px; }
+            .player-card-v { width: 70px; }
         }
-
-        /* 玩家名字输入 */
-        .player-name {
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 2px solid rgba(255,255,255,0.15);
-            color: #fff;
-            text-align: center;
-            font-size: 14px;
-            padding: 6px;
             border-radius: 8px;
             margin-bottom: 10px;
             -webkit-appearance: none;
@@ -1153,21 +1151,21 @@
         .card-buttons {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            margin-top: 10px;
+            gap: 4px;
+            margin-top: 8px;
             width: 100%;
         }
         .card-btn-row {
             display: flex;
-            gap: 5px;
+            gap: 4px;
             width: 100%;
         }
         .card-btn {
             flex: 1;
-            padding: 8px 4px;
-            font-size: 12px;
+            padding: 5px 2px;
+            font-size: 11px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.15s;
@@ -1198,8 +1196,19 @@
             pointer-events: none;
         }
         /* 轮空玩家隐藏按钮 */
-        .player-card.idle .card-buttons {
+        .player-card.idle .card-buttons,
+        .player-card-h.idle .card-buttons,
+        .player-card-v.idle .card-buttons {
             display: none;
+        }
+        /* 桌面卡片里按钮更紧凑 */
+        #mahjongTable .card-btn {
+            padding: 4px 2px;
+            font-size: 10px;
+        }
+        #mahjongTable .card-buttons {
+            margin-top: 6px;
+            gap: 3px;
         }
     </style>
 </head>
@@ -1211,8 +1220,8 @@
             <div class="subtitle">版权所有：zjwzhqc</div>
         </div>
 
-        <!-- 连庄信息 -->
-        <div class="consecutive-info">
+        <!-- 连庄信息（已迁移到中央面板，隐藏此栏） -->
+        <div class="consecutive-info" style="display:none">
             <div class="info-item">
                 <span class="label">当前庄家</span>
                 <span class="dealer-name" id="dealerLabel">东风(玩家1)</span>
@@ -1239,10 +1248,13 @@
         </div>
 
         <!-- 牌桌区域 -->
-        <div id="mahjongTable">
-            <!-- 顶部：北/白板 -->
-            <div class="table-edge top-edge">
-                <div class="player-card-h" data-index="3">
+        <!-- 整体包装 -->
+        <div class="table-wrapper">
+            <!-- 牌桌圆形主体 -->
+            <div id="mahjongTable">
+                <!-- 北：顶部 -->
+                <div class="table-edge top-edge">
+                    <div class="player-card-h" data-index="3">
                     <span class="dealer-badge" style="display:none">庄</span>
                     <div class="wind-badge">北</div>
                     <input type="text" class="player-name" value="玩家4" placeholder="输入名字">
@@ -1280,6 +1292,7 @@
                     <div class="center-dealer-name" id="centerDealerName">等待开始</div>
                     <div class="center-round" id="centerRound">—</div>
                     <div class="center-extra" id="centerExtra"></div>
+                    <div class="center-idle-hint" id="centerIdleHint"></div>
                 </div>
 
                 <!-- 右：东（庄家默认位置） -->
@@ -1331,7 +1344,8 @@
                     <div class="card-buttons" id="cardButtons-4"></div>
                 </div>
             </div>
-        </div>
+        </div><!-- 闭合 mahjongTable -->
+        </div><!-- 闭合 table-wrapper -->
 
         <!-- 操作按钮 -->
         <div class="action-buttons">
@@ -1930,8 +1944,9 @@
             var dealerWindEl = document.getElementById('centerWind');
             var centerRoundEl = document.getElementById('centerRound');
             var centerExtraEl = document.getElementById('centerExtra');
+            var centerIdleHintEl = document.getElementById('centerIdleHint');
             if (dealerNameEl) {
-                dealerNameEl.textContent = dealerPlayer ? dealerPlayer.name + '(' + dealerPlayer.wind + ')' : '等待开始';
+                dealerNameEl.textContent = dealerPlayer ? dealerPlayer.name : '等待开始';
             }
             if (dealerWindEl) {
                 var windEmoji = { '东': '🀀', '南': '🀁', '西': '🀂', '北': '🀃', '白板': '🀄' };
@@ -1943,8 +1958,20 @@
             if (centerExtraEl) {
                 var extra = [];
                 if (gameState.globalDouble) extra.push('双翻');
-                if (dealerPlayer && dealerPlayer.score > 0) extra.push('+' + dealerPlayer.score);
+                if (dealerPlayer && dealerPlayer.score !== 0) {
+                    extra.push((dealerPlayer.score > 0 ? '+' : '') + dealerPlayer.score + '分');
+                }
+                if (gameState.consecutiveDealerWins > 0) extra.push('连胡' + gameState.consecutiveDealerWins);
                 centerExtraEl.textContent = extra.join(' · ');
+            }
+            // 轮空提示
+            if (centerIdleHintEl) {
+                if (isFivePlayerMode()) {
+                    var idlePlayer = gameState.players[gameState.idleIndex];
+                    centerIdleHintEl.textContent = '⏭ 轮空: ' + (idlePlayer ? idlePlayer.name : '');
+                } else {
+                    centerIdleHintEl.textContent = '总坐庄: ' + (gameState.totalDealerCount || 0);
+                }
             }
 
             // 更新连庄显示
